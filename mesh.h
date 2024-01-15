@@ -17,5 +17,6 @@ typedef struct{
 
 Mesh *createMeshFromHeightfield(float **heightfield, const int size);
 void exportMeshAsObj(Mesh *mesh, const char *filename);
+void freeMesh(Mesh *mesh);
 
 #endif

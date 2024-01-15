@@ -43,7 +43,7 @@ int main(){
     const char* objFilename = "output.obj";
     exportMeshAsObj(mesh, objFilename);
 
-    free(mesh);
+    freeMesh(mesh);
     freeHeightfield(heightfield, size);
 
     return 0;

@@ -185,3 +185,9 @@ void exportMeshAsObj(Mesh *mesh, const char *filename){
 
     fclose(objFile);
 }
+
+void freeMesh(Mesh *mesh){
+    free(mesh->vertices);
+    free(mesh->faces);
+    free(mesh);
+}
