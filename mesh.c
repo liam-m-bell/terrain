@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 
-float MAX_HEIGHT = 600.0f;
+float HEIGHT_SCALE = 0.4f;
 
 // Structure to represent a 3D vector
 typedef struct {
@@ -78,9 +79,10 @@ void exportMeshAsObj(Vector *vertices, const char *filename, const int size){
 }
 
 // Diamond Square subdivision algorithm
-float randomHeight()
+float randomHeight(float max)
 {
-    return (((float)rand() / RAND_MAX) * 2.0f * MAX_HEIGHT) -  MAX_HEIGHT;
+    max *= HEIGHT_SCALE;
+    return (((float)rand() / RAND_MAX) * 2.0f * max) -  max;
 }
 
 void squareStep(float **heightfield, const int size, int x, int z, int offset, float scale){
@@ -105,7 +107,7 @@ void squareStep(float **heightfield, const int size, int x, int z, int offset, f
     }
 
     float average = total / (float)count;
-    heightfield[x][z] = average + randomHeight() * scale;
+    heightfield[x][z] = average + randomHeight(size) * scale;
 }
 
 void diamondStep(float **heightfield, const int size, int x, int z, int offset, float scale){
@@ -114,7 +116,7 @@ void diamondStep(float **heightfield, const int size, int x, int z, int offset, 
         heightfield[x-offset][z+offset] +
         heightfield[x+offset][z+offset]) / 4.0f;
     
-    heightfield[x][z] = average + randomHeight() * scale;
+    heightfield[x][z] = average + randomHeight(size) * scale;
 }
 
 void diamondSquareStep(float **heightfield, const int size, int width, float scale){
@@ -138,10 +140,10 @@ void diamondSquareStep(float **heightfield, const int size, int width, float sca
 
 void diamondSquare(float **heightfield, const int size, const float roughness){
     // Initialise corners
-    heightfield[0][0] = randomHeight();
-    heightfield[0][size - 1] = randomHeight();
-    heightfield[size - 1][0] = randomHeight();
-    heightfield[size - 1][size - 1] = randomHeight();
+    heightfield[0][0] = randomHeight(size);
+    heightfield[0][size - 1] = randomHeight(size);
+    heightfield[size - 1][0] = randomHeight(size);
+    heightfield[size - 1][size - 1] = randomHeight(size);
 
     int width = size - 1;
     float scale = 1.0f;
@@ -154,7 +156,9 @@ void diamondSquare(float **heightfield, const int size, const float roughness){
 }
 
 int main(){
-    const int n = 10;
+    srand(time(NULL));
+
+    const int n = 9;
     const int size = pow(2, n) + 1;
 
     // Create heightfield
@@ -162,7 +166,7 @@ int main(){
 
     // Generate heightfield
     //generateRandomHeightfield(heightfield, size);
-    diamondSquare(heightfield, size, 0.4);
+    diamondSquare(heightfield, size, 0.45);
 
     // Create mesh from heightfield
     Vector *mesh = createMeshFromHeightfield(heightfield, size);
