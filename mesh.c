@@ -6,9 +6,18 @@
 #include "diamond_square.h"
 
 // Structure to represent a 3D vector
-typedef struct {
+typedef struct{
     float x, y, z;
 } Vector;
+
+typedef struct{
+    int v0, v1, v2;
+} Triangle;
+
+typedef struct{
+    Vector *vertices;
+    Triangle *faces;
+} Mesh;
 
 // Allocates memory for a heightfield
 float **createHeightfield(const int size){
@@ -28,33 +37,60 @@ void freeHeightfield(float **a, const int size){
     free(a);
 }
 
-float **generateRandomHeightfield(float **heightfield, const int size){
-    for (int x = 0; x < size; x++) { 
-        for (int z = 0; z < size; ++z) {
-            float elevation = rand() / RAND_MAX;
-            heightfield[x][z] = elevation;
-        }
-    }
-}
-
 // Create a mesh from a heightfield
-Vector *createMeshFromHeightfield(float **heightfield, const int size){
-    Vector *vertices = (Vector*)malloc(size * size * sizeof(Vector));
+Mesh *createMeshFromHeightfield(float **heightfield, const int size){
+    Mesh *mesh = (Mesh*)malloc(sizeof(Mesh));
+    
+    int vertexCount = size * size + 2 * size + 2 * (size -1);
+    Vector *vertices = (Vector*)malloc(vertexCount * sizeof(Vector));
 
+    float min = 0;
+
+    int i = 0;
     for (int x = 0; x < size; x++) {
         for (int z = 0; z < size; ++z) {
-            int i = size * x + z;
+            float elevation = heightfield[x][z];
+
+            if (elevation < min){
+                min  = elevation;
+            }
+
             vertices[i].x = x;
-            vertices[i].y = heightfield[x][z];
+            vertices[i].y = elevation;
             vertices[i].z = z;
+            i++;
         }
     }
 
-    return vertices;
+    int faceCount = 2 * (size - 1) * (size - 1); //+ 4 * 2 * (size - 1) + 2;
+    Triangle *faces = (Triangle*)malloc(faceCount * sizeof(Triangle));
+
+    int count = 0;
+    for (int z = 0; z < size - 1; z++) {
+        for (int x = 0; x < size - 1; x++) {
+            int i = size * z + x;
+            faces[count].v0 = i;
+            faces[count].v1 = i + 1;
+            faces[count].v2 = i + 1 + size;
+            count++;
+
+            faces[count].v0 = i;
+            faces[count].v1 = i + 1 + size;
+            faces[count].v2 = i + size;
+            count++;
+        }
+    }
+    
+    mesh->vertices = vertices;
+    mesh->faces = faces;
+    return mesh;
 }
 
 // Export mesh as OBJ file
-void exportMeshAsObj(Vector *vertices, const char *filename, const int size){
+void exportMeshAsObj(Mesh *mesh, const char *filename, const int size){
+    Vector *vertices = mesh->vertices;
+    Triangle *faces = mesh->faces;
+
     FILE* objFile = fopen(filename, "w");
     if (!objFile) {
         fprintf(stderr, "Error: Unable to open file for writing: %s\n", filename);
@@ -67,12 +103,8 @@ void exportMeshAsObj(Vector *vertices, const char *filename, const int size){
     }
 
     // Faces
-    for (int x = 0; x < size - 1; x++) {
-        for (int z = 0; z < size - 1; z++) {
-            int i = size * x + z;
-            fprintf(objFile, "f %d %d %d\n", i + 1, i + 2, i + 2 + size);
-            fprintf(objFile, "f %d %d %d\n", i + 1, i + 2 + size, i + 1 + size);
-        }
+    for (int i = 0; i < 2 * (size - 1) * (size - 1); i++) {
+        fprintf(objFile, "f %d %d %d\n", faces[i].v0 + 1, faces[i].v1 + 1, faces[i].v2 + 1);
     }
 
     fclose(objFile);
@@ -81,18 +113,17 @@ void exportMeshAsObj(Vector *vertices, const char *filename, const int size){
 int main(){
     srand(time(NULL));
 
-    const int n = 9;
+    const int n = 5;
     const int size = pow(2, n) + 1;
 
     // Create heightfield
     float **heightfield = createHeightfield(size);
 
     // Generate heightfield
-    //generateRandomHeightfield(heightfield, size);
     diamondSquare(heightfield, size, 0.45);
 
     // Create mesh from heightfield
-    Vector *mesh = createMeshFromHeightfield(heightfield, size);
+    Mesh *mesh = createMeshFromHeightfield(heightfield, size);
 
     // Export mesh as OBJ file
     const char* objFilename = "output.obj";
