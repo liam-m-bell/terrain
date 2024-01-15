@@ -86,6 +86,11 @@ Mesh *createMeshFromHeightfield(float **heightfield, const int size){
     }
 
     // Base and sides
+    int baseTopLeft = size * size;
+    int baseTopRight = baseTopLeft + size - 1;
+    int baseBottomLeft = baseTopLeft + size + 2 * (size - 2);
+    int baseBottomRight = baseBottomLeft + size - 1;
+
     for (int x = 0; x < size; x++) {
         vertices[i].x = x;
         vertices[i].y = min;
@@ -103,11 +108,11 @@ Mesh *createMeshFromHeightfield(float **heightfield, const int size){
         }
         i++;        
     }
-    faces[count].v0 = size * size;
+    faces[count].v0 = baseTopLeft;
     faces[count].v1 = 0;
     faces[count].v2 = size;
     count++;
-    faces[count].v0 = size * size;
+    faces[count].v0 = baseTopLeft;
     faces[count].v1 = size;
     faces[count].v2 = i;
     count++;
@@ -127,16 +132,16 @@ Mesh *createMeshFromHeightfield(float **heightfield, const int size){
             faces[count].v2 = i + 1;
         }
         else{
-            faces[count].v2 = size * size + size + 2 * (size - 2);
+            faces[count].v2 = baseBottomLeft;
         }
         count++;
         i++; 
     }
-    faces[count].v0 = size * size + size - 1;
+    faces[count].v0 = baseTopRight;
     faces[count].v1 = size - 1;
     faces[count].v2 = 2 * size - 1;
     count++;
-    faces[count].v0 = size * size + size - 1;
+    faces[count].v0 = baseTopRight;
     faces[count].v1 = 2 * size - 1;
     faces[count].v2 = i;
     count++;
@@ -155,7 +160,7 @@ Mesh *createMeshFromHeightfield(float **heightfield, const int size){
             faces[count].v2 = i + 1;
         }
         else{
-            faces[count].v2 = size * size + 2 * size + 2 * (size - 2) - 1;
+            faces[count].v2 = baseBottomRight;
         }
         count++;
         i++;
@@ -179,14 +184,13 @@ Mesh *createMeshFromHeightfield(float **heightfield, const int size){
     }
 
     // Base
-    faces[count].v0 = size * size;
-    faces[count].v1 = size * size + size - 1;
-    faces[count].v2 = size * size + 2 * size + 2 * (size - 2) - 1;
+    faces[count].v0 = baseTopLeft;
+    faces[count].v1 = baseTopRight;
+    faces[count].v2 = baseBottomRight;
     count++;
-
-    faces[count].v0 = size * size;
-    faces[count].v1 = size * size + 2 * size + 2 * (size - 2) -1;
-    faces[count].v2 = size * size + size + 2 * (size - 2);
+    faces[count].v0 = baseTopLeft;
+    faces[count].v1 = baseBottomRight;
+    faces[count].v2 = baseBottomLeft;
     
     mesh->vertexCount = vertexCount;
     mesh->vertices = vertices;
