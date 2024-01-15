@@ -15,7 +15,10 @@ typedef struct{
 } Triangle;
 
 typedef struct{
+    int vertexCount;
     Vector *vertices;
+
+    int faceCount;
     Triangle *faces;
 } Mesh;
 
@@ -41,18 +44,22 @@ void freeHeightfield(float **a, const int size){
 Mesh *createMeshFromHeightfield(float **heightfield, const int size){
     Mesh *mesh = (Mesh*)malloc(sizeof(Mesh));
     
-    int vertexCount = size * size + 2 * size + 2 * (size -1);
+    int vertexCount = size * size + 2 * size + 2 * (size - 2);
     Vector *vertices = (Vector*)malloc(vertexCount * sizeof(Vector));
 
-    float min = 0;
+    int faceCount = 2 * (size - 1) * (size - 1) + 4 * 2 * (size - 1) + 2;
+    Triangle *faces = (Triangle*)malloc(faceCount * sizeof(Triangle));
 
     int i = 0;
-    for (int x = 0; x < size; x++) {
-        for (int z = 0; z < size; ++z) {
+
+    // Terrain mesh
+    float min = 0;
+    for (int z = 0; z < size; ++z){
+        for (int x = 0; x < size; x++) {
             float elevation = heightfield[x][z];
 
             if (elevation < min){
-                min  = elevation;
+                min = elevation;
             }
 
             vertices[i].x = x;
@@ -61,9 +68,6 @@ Mesh *createMeshFromHeightfield(float **heightfield, const int size){
             i++;
         }
     }
-
-    int faceCount = 2 * (size - 1) * (size - 1); //+ 4 * 2 * (size - 1) + 2;
-    Triangle *faces = (Triangle*)malloc(faceCount * sizeof(Triangle));
 
     int count = 0;
     for (int z = 0; z < size - 1; z++) {
@@ -80,14 +84,119 @@ Mesh *createMeshFromHeightfield(float **heightfield, const int size){
             count++;
         }
     }
+
+    // Base and sides
+    for (int x = 0; x < size; x++) {
+        vertices[i].x = x;
+        vertices[i].y = min;
+        vertices[i].z = 0;
+
+        if (x < size - 1){
+            faces[count].v0 = i;
+            faces[count].v1 = x;
+            faces[count].v2 = x + 1;
+            count++;
+            faces[count].v0 = i;
+            faces[count].v1 = x + 1;
+            faces[count].v2 = i + 1;
+            count++;
+        }
+        i++;        
+    }
+    faces[count].v0 = size * size;
+    faces[count].v1 = 0;
+    faces[count].v2 = size;
+    count++;
+    faces[count].v0 = size * size;
+    faces[count].v1 = size;
+    faces[count].v2 = i;
+    count++;
+    for (int z = 1; z < size - 1; z++) {
+        vertices[i].x = 0;
+        vertices[i].y = min;
+        vertices[i].z = z;
+        
+        faces[count].v0 = i;
+        faces[count].v1 = size * z;
+        faces[count].v2 = size * (z + 1);
+        count++;
+        
+        faces[count].v0 = i;
+        faces[count].v1 = size * (z + 1);
+        if (z < size - 2){
+            faces[count].v2 = i + 1;
+        }
+        else{
+            faces[count].v2 = size * size + size + 2 * (size - 2);
+        }
+        count++;
+        i++; 
+    }
+    faces[count].v0 = size * size + size - 1;
+    faces[count].v1 = size - 1;
+    faces[count].v2 = 2 * size - 1;
+    count++;
+    faces[count].v0 = size * size + size - 1;
+    faces[count].v1 = 2 * size - 1;
+    faces[count].v2 = i;
+    count++;
+    for (int z = 1; z < size - 1; z++) {
+        vertices[i].x = size - 1;
+        vertices[i].y = min;
+        vertices[i].z = z;
+
+        faces[count].v0 = i;
+        faces[count].v1 = size * z + size - 1;
+        faces[count].v2 = size * (z + 1) + size - 1;
+        count++;
+        faces[count].v0 = i;
+        faces[count].v1 = size * (z + 1) + size - 1;
+        if (z < size - 2){
+            faces[count].v2 = i + 1;
+        }
+        else{
+            faces[count].v2 = size * size + 2 * size + 2 * (size - 2) - 1;
+        }
+        count++;
+        i++;
+    }
+    for (int x = 0; x < size; x++) {
+        vertices[i].x = x;
+        vertices[i].y = min;
+        vertices[i].z = size - 1;
+
+        if (x < size - 1){
+            faces[count].v0 = i;
+            faces[count].v1 = size * (size - 1) + x;
+            faces[count].v2 = size * (size - 1) + x + 1;
+            count++;
+            faces[count].v0 = i;
+            faces[count].v1 = size * (size - 1) + x + 1;
+            faces[count].v2 = i + 1;
+            count++;
+        }
+        i++;
+    }
+
+    // Base
+    faces[count].v0 = size * size;
+    faces[count].v1 = size * size + size - 1;
+    faces[count].v2 = size * size + 2 * size + 2 * (size - 2) - 1;
+    count++;
+
+    faces[count].v0 = size * size;
+    faces[count].v1 = size * size + 2 * size + 2 * (size - 2) -1;
+    faces[count].v2 = size * size + size + 2 * (size - 2);
     
+    mesh->vertexCount = vertexCount;
     mesh->vertices = vertices;
+    mesh->faceCount = faceCount;
     mesh->faces = faces;
     return mesh;
 }
 
 // Export mesh as OBJ file
-void exportMeshAsObj(Mesh *mesh, const char *filename, const int size){
+void exportMeshAsObj(Mesh *mesh, const char *filename){
     Vector *vertices = mesh->vertices;
     Triangle *faces = mesh->faces;
 
@@ -98,12 +207,12 @@ void exportMeshAsObj(Mesh *mesh, const char *filename, const int size){
     }
 
     // Vertices
-    for (int i = 0; i < size * size; i++) {
+    for (int i = 0; i < mesh->vertexCount; i++) {
         fprintf(objFile, "v %f %f %f\n", vertices[i].x, vertices[i].y, vertices[i].z);
     }
 
     // Faces
-    for (int i = 0; i < 2 * (size - 1) * (size - 1); i++) {
+    for (int i = 0; i < mesh->faceCount; i++) {
         fprintf(objFile, "f %d %d %d\n", faces[i].v0 + 1, faces[i].v1 + 1, faces[i].v2 + 1);
     }
 
@@ -113,7 +222,7 @@ void exportMeshAsObj(Mesh *mesh, const char *filename, const int size){
 int main(){
     srand(time(NULL));
 
-    const int n = 5;
+    const int n = 7;
     const int size = pow(2, n) + 1;
 
     // Create heightfield
@@ -127,7 +236,7 @@ int main(){
 
     // Export mesh as OBJ file
     const char* objFilename = "output.obj";
-    exportMeshAsObj(mesh, objFilename, size);
+    exportMeshAsObj(mesh, objFilename);
 
     free(mesh);
     freeHeightfield(heightfield, size);
