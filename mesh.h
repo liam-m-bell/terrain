@@ -4,7 +4,7 @@
 #include "vector.h"
 
 typedef struct{
-    int v0, v1, v2;
+    unsigned int v0, v1, v2;
 } Triangle;
 
 typedef struct{

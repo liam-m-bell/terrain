@@ -3,17 +3,33 @@
 
 #include "mesh.h"
 
+Triangle makeTriangle(unsigned int a, unsigned int b, unsigned int c){
+    Triangle t;
+    t.v0 = a;
+    t.v1 = b;
+    t.v2 = c;
+    return t;
+}
+
+void addVertexToMesh(Mesh *mesh, float x, float y, float z){
+    mesh->vertices[mesh->vertexCount] = vector3(x, y, z);
+    (mesh->vertexCount)++;
+}
+
+void addFaceToMesh(Mesh *mesh, unsigned int a, unsigned int b, unsigned int c){
+    mesh->faces[mesh->faceCount] = makeTriangle(a, b, c);
+    (mesh->faceCount)++;
+}
+
 // Create a mesh from a heightfield
 Mesh *createMeshFromHeightfield(float **heightfield, const int size){
     Mesh *mesh = (Mesh*)malloc(sizeof(Mesh));
     
     int vertexCount = size * size + 2 * size + 2 * (size - 2);
-    Vector *vertices = (Vector*)malloc(vertexCount * sizeof(Vector));
+    mesh->vertices = (Vector*)malloc(vertexCount * sizeof(Vector));
 
     int faceCount = 2 * (size - 1) * (size - 1) + 4 * 2 * (size - 1) + 2;
-    Triangle *faces = (Triangle*)malloc(faceCount * sizeof(Triangle));
-
-    int i = 0;
+    mesh->faces = (Triangle*)malloc(faceCount * sizeof(Triangle));
 
     // Terrain mesh
     float min = 0;
@@ -25,140 +41,78 @@ Mesh *createMeshFromHeightfield(float **heightfield, const int size){
                 min = elevation;
             }
 
-            vertices[i].x = x;
-            vertices[i].y = elevation;
-            vertices[i].z = z;
-            i++;
+            addVertexToMesh(mesh, x, elevation, z);
         }
     }
 
-    int count = 0;
     for (int z = 0; z < size - 1; z++) {
         for (int x = 0; x < size - 1; x++) {
             int i = size * z + x;
-            faces[count].v0 = i;
-            faces[count].v1 = i + 1;
-            faces[count].v2 = i + 1 + size;
-            count++;
-
-            faces[count].v0 = i;
-            faces[count].v1 = i + 1 + size;
-            faces[count].v2 = i + size;
-            count++;
+            addFaceToMesh(mesh, i, i + 1, i + 1 + size);
+            addFaceToMesh(mesh, i, i + 1 + size, i + size);
         }
     }
 
-    // Base and sides
+    // Sides
+    int i = mesh->vertexCount;
     int baseTopLeft = size * size;
     int baseTopRight = baseTopLeft + size - 1;
     int baseBottomLeft = baseTopLeft + size + 2 * (size - 2);
     int baseBottomRight = baseBottomLeft + size - 1;
 
     for (int x = 0; x < size; x++) {
-        vertices[i].x = x;
-        vertices[i].y = min;
-        vertices[i].z = 0;
+        addVertexToMesh(mesh, x, min, 0.0f);
 
         if (x < size - 1){
-            faces[count].v0 = i;
-            faces[count].v1 = x;
-            faces[count].v2 = x + 1;
-            count++;
-            faces[count].v0 = i;
-            faces[count].v1 = x + 1;
-            faces[count].v2 = i + 1;
-            count++;
+            addFaceToMesh(mesh, i, x, x + 1);
+            addFaceToMesh(mesh, i, x + 1, i + 1);
         }
         i++;        
     }
-    faces[count].v0 = baseTopLeft;
-    faces[count].v1 = 0;
-    faces[count].v2 = size;
-    count++;
-    faces[count].v0 = baseTopLeft;
-    faces[count].v1 = size;
-    faces[count].v2 = i;
-    count++;
+    addFaceToMesh(mesh, baseTopLeft, 0, size);
+    addFaceToMesh(mesh, baseTopLeft, size, i);
+
     for (int z = 1; z < size - 1; z++) {
-        vertices[i].x = 0;
-        vertices[i].y = min;
-        vertices[i].z = z;
-        
-        faces[count].v0 = i;
-        faces[count].v1 = size * z;
-        faces[count].v2 = size * (z + 1);
-        count++;
-        
-        faces[count].v0 = i;
-        faces[count].v1 = size * (z + 1);
+        addVertexToMesh(mesh, 0, min, z);
+        addFaceToMesh(mesh, i, size * z, size * (z + 1));
+
         if (z < size - 2){
-            faces[count].v2 = i + 1;
+            addFaceToMesh(mesh, i, size * (z + 1), i + 1);
         }
         else{
-            faces[count].v2 = baseBottomLeft;
+            addFaceToMesh(mesh, i, size * (z + 1), baseBottomLeft);
         }
-        count++;
         i++; 
     }
-    faces[count].v0 = baseTopRight;
-    faces[count].v1 = size - 1;
-    faces[count].v2 = 2 * size - 1;
-    count++;
-    faces[count].v0 = baseTopRight;
-    faces[count].v1 = 2 * size - 1;
-    faces[count].v2 = i;
-    count++;
-    for (int z = 1; z < size - 1; z++) {
-        vertices[i].x = size - 1;
-        vertices[i].y = min;
-        vertices[i].z = z;
+    addFaceToMesh(mesh, baseTopRight, size - 1, 2 * size - 1);
+    addFaceToMesh(mesh, baseTopRight, 2 * size - 1, i);
 
-        faces[count].v0 = i;
-        faces[count].v1 = size * z + size - 1;
-        faces[count].v2 = size * (z + 1) + size - 1;
-        count++;
-        faces[count].v0 = i;
-        faces[count].v1 = size * (z + 1) + size - 1;
+    for (int z = 1; z < size - 1; z++) {
+        addVertexToMesh(mesh, size - 1, min, z);
+        addFaceToMesh(mesh, i, size * z + size - 1, size * (z + 1) + size - 1);
+
         if (z < size - 2){
-            faces[count].v2 = i + 1;
+            addFaceToMesh(mesh, i, size * (z + 1) + size - 1, i + 1);
         }
         else{
-            faces[count].v2 = baseBottomRight;
+            addFaceToMesh(mesh, i, size * (z + 1) + size - 1, baseBottomRight);
         }
-        count++;
         i++;
     }
     for (int x = 0; x < size; x++) {
-        vertices[i].x = x;
-        vertices[i].y = min;
-        vertices[i].z = size - 1;
+        addVertexToMesh(mesh, x, min, size - 1);
 
         if (x < size - 1){
-            faces[count].v0 = i;
-            faces[count].v1 = size * (size - 1) + x;
-            faces[count].v2 = size * (size - 1) + x + 1;
-            count++;
-            faces[count].v0 = i;
-            faces[count].v1 = size * (size - 1) + x + 1;
-            faces[count].v2 = i + 1;
-            count++;
+            addFaceToMesh(mesh, i, size * (size - 1) + x, size * (size - 1) + x + 1);
+            addFaceToMesh(mesh, i, size * (size - 1) + x + 1, i + 1);
         }
         i++;
     }
 
     // Base
-    faces[count].v0 = baseTopLeft;
-    faces[count].v1 = baseTopRight;
-    faces[count].v2 = baseBottomRight;
-    count++;
-    faces[count].v0 = baseTopLeft;
-    faces[count].v1 = baseBottomRight;
-    faces[count].v2 = baseBottomLeft;
-    
-    mesh->vertexCount = vertexCount;
-    mesh->vertices = vertices;
-    mesh->faceCount = faceCount;
-    mesh->faces = faces;
+    addFaceToMesh(mesh, baseTopLeft, baseTopRight, baseBottomRight);
+    addFaceToMesh(mesh, baseTopLeft, baseBottomRight, baseBottomLeft);
+
     return mesh;
 }
 
