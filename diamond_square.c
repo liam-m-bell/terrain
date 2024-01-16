@@ -13,51 +13,51 @@ void squareStep(float **heightfield, const int size, int x, int z, int offset, f
     float total = 0.0f;
     int count = 0;
 
-    if (x - offset >= 0) {
-        total += heightfield[x - offset][z];
-        count++;
-    }
-    if (x + offset < size) {
-        total += heightfield[x + offset][z];
-        count++;
-    }
     if (z - offset >= 0) {
-        total += heightfield[x][z - offset];
+        total += heightfield[z - offset][x];
         count++;
     }
     if (z + offset < size) {
-        total += heightfield[x][z + offset];
+        total += heightfield[z + offset][x];
+        count++;
+    }
+    if (x - offset >= 0) {
+        total += heightfield[z][x - offset];
+        count++;
+    }
+    if (x + offset < size) {
+        total += heightfield[z][x + offset];
         count++;
     }
 
     float average = total / (float)count;
-    heightfield[x][z] = average + randomHeight(size) * scale;
+    heightfield[z][x] = average + randomHeight(size) * scale;
 }
 
-void diamondStep(float **heightfield, const int size, int x, int z, int offset, float scale){
-    float average = (heightfield[x-offset][z-offset] +
-        heightfield[x+offset][z-offset] + 
-        heightfield[x-offset][z+offset] +
-        heightfield[x+offset][z+offset]) / 4.0f;
+void diamondStep(float **heightfield, const int size, int z, int x, int offset, float scale){
+    float average = (heightfield[z-offset][x-offset] +
+        heightfield[z+offset][x-offset] + 
+        heightfield[z-offset][x+offset] +
+        heightfield[z+offset][x+offset]) / 4.0f;
     
-    heightfield[x][z] = average + randomHeight(size) * scale;
+    heightfield[z][x] = average + randomHeight(size) * scale;
 }
 
 void diamondSquareStep(float **heightfield, const int size, int width, float scale){
     int half = width / 2;
 
-    for (int x = half; x < size; x += width){
-        for (int z = half; z < size; z += width){
-            diamondStep(heightfield, size, x, z, half, scale);
+    for (int z = half; z < size; z += width){
+        for (int x = half; x < size; x += width){
+            diamondStep(heightfield, size, z, x, half, scale);
         }
     }
 
-    for (int x = half; x < size; x += width){
-        for (int z = half; z < size; z += width){
-            squareStep(heightfield, size, x, z - half, half, scale);
-            squareStep(heightfield, size, x, z + half, half, scale);
-            squareStep(heightfield, size, x - half, z, half, scale);
-            squareStep(heightfield, size, x + half, z, half, scale);
+    for (int z = half; z < size; z += width){
+        for (int x = half; x < size; x += width){
+            squareStep(heightfield, size, z, x - half, half, scale);
+            squareStep(heightfield, size, z, x + half, half, scale);
+            squareStep(heightfield, size, z - half, x, half, scale);
+            squareStep(heightfield, size, z + half, x, half, scale);
         }
     }
 }
