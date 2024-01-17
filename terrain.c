@@ -39,10 +39,9 @@ void generateHeightfieldFromNoise(float** heightfield, int size, int octaves, fl
 
 int main(){
     srand(time(NULL));
-
     loadNoisePermutation("perlin_data.txt");
 
-    const int n = 8;
+    const int n = 10;
     const int size = pow(2, n) + 1;
 
     // Create heightfield
@@ -50,16 +49,15 @@ int main(){
 
     // Generate heightfield
     generateHeightfieldFromNoise(heightfield, size, 9, 2.0f, 0.5f, 4.0f, size / 5.0f);
-    //diamondSquare(heightfield, size, 0.45);
 
-    // Create mesh from heightfield
+    // Output heightfield as image
+    outputHeightfieldAsImage(heightfield, size, size / 5.0f, "image.ppm");
+
+    // Create mesh from heightfield and export as OBJ file
     Mesh *mesh = createMeshFromHeightfield(heightfield, size);
-
-    // Export mesh as OBJ file
-    const char* objFilename = "output.obj";
-    exportMeshAsObj(mesh, objFilename);
-
+    exportMeshAsObj(mesh, "model.obj");
     freeMesh(mesh);
+
     freeHeightfield(heightfield, size);
 
     return 0;
