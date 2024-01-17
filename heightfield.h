@@ -7,4 +7,6 @@ float **createHeightfield(const int size);
 // Deallocates memory for a heightfield
 void freeHeightfield(float **a, const int size);
 
+void outputHeightfieldAsImage(float **a, const int size, const float maxHeight, char *filename);
+
 #endif
