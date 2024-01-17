@@ -32,15 +32,9 @@ Mesh *createMeshFromHeightfield(float **heightfield, const int size){
     mesh->faces = (Triangle*)malloc(faceCount * sizeof(Triangle));
 
     // Terrain mesh
-    float min = 0;
     for (int z = 0; z < size; ++z){
         for (int x = 0; x < size; x++) {
             float elevation = heightfield[x][z];
-
-            if (elevation < min){
-                min = elevation;
-            }
-
             addVertexToMesh(mesh, x, elevation, z);
         }
     }
@@ -61,7 +55,7 @@ Mesh *createMeshFromHeightfield(float **heightfield, const int size){
     int baseBottomRight = baseBottomLeft + size - 1;
 
     for (int x = 0; x < size; x++) {
-        addVertexToMesh(mesh, x, min, 0.0f);
+        addVertexToMesh(mesh, x, 0.0f, 0.0f);
 
         if (x < size - 1){
             addFaceToMesh(mesh, i, x, x + 1);
@@ -73,7 +67,7 @@ Mesh *createMeshFromHeightfield(float **heightfield, const int size){
     addFaceToMesh(mesh, baseTopLeft, size, i);
 
     for (int z = 1; z < size - 1; z++) {
-        addVertexToMesh(mesh, 0, min, z);
+        addVertexToMesh(mesh, 0, 0.0f, z);
         addFaceToMesh(mesh, i, size * z, size * (z + 1));
 
         if (z < size - 2){
@@ -88,7 +82,7 @@ Mesh *createMeshFromHeightfield(float **heightfield, const int size){
     addFaceToMesh(mesh, baseTopRight, 2 * size - 1, i);
 
     for (int z = 1; z < size - 1; z++) {
-        addVertexToMesh(mesh, size - 1, min, z);
+        addVertexToMesh(mesh, size - 1, 0.0f, z);
         addFaceToMesh(mesh, i, size * z + size - 1, size * (z + 1) + size - 1);
 
         if (z < size - 2){
@@ -100,7 +94,7 @@ Mesh *createMeshFromHeightfield(float **heightfield, const int size){
         i++;
     }
     for (int x = 0; x < size; x++) {
-        addVertexToMesh(mesh, x, min, size - 1);
+        addVertexToMesh(mesh, x, 0.0f, size - 1);
 
         if (x < size - 1){
             addFaceToMesh(mesh, i, size * (size - 1) + x, size * (size - 1) + x + 1);

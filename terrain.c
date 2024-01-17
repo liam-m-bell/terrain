@@ -3,27 +3,10 @@
 #include <math.h>
 #include <time.h>
 
+#include "heightfield.h"
 #include "mesh.h"
 #include "diamond_square.h"
 #include "noise.h"
-
-// Allocates memory for a heightfield
-float **createHeightfield(const int size){
-    float **a = (float**)malloc(size * sizeof(float*));
-    for (int i = 0; i < size; i++){
-        a[i] = (float*)malloc(size * sizeof(float));
-    }
-
-    return a;
-}
-
-// Deallocates memory for a heightfield
-void freeHeightfield(float **a, const int size){
-    for (int i = 0; i < size; i++) {
-        free(a[i]);
-    }
-    free(a);
-}
 
 void generateHeightfieldFromNoise(float** heightfield, int size, int octaves, float lacunarity, float persistence, float scale, float height){
     float min = 0.0f;
@@ -59,7 +42,7 @@ int main(){
 
     loadNoisePermutation("perlin_data.txt");
 
-    const int n = 11;
+    const int n = 8;
     const int size = pow(2, n) + 1;
 
     // Create heightfield
