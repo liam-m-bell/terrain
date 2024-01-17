@@ -87,14 +87,8 @@ float randRange(float min, float max){
 }
 
 float warpedNoise(Vector warp, float warpScale, Vector p, int octaves, float lacunarity, float persistence, float scale){
-    // // Vector q = vector2(perlinNoise(addVec(p, vector2(0.0f, 0.0f)), octaves, lacunarity, persistence, scale),
-    // //                     perlinNoise(addVec(p, warp), octaves, lacunarity, persistence, scale));
-    
-    // Vector offset = vector2(randRange(-1.0f, 1.0f), randRange(-1.0f, 1.0f));
-    // return perlinNoise(addVec(p, offset), octaves, lacunarity, persistence, scale);
-
-    Vector q = vector2(perlinNoise(p, octaves, lacunarity, persistence, scale), 
+    Vector offset = vector2(perlinNoise(p, octaves, lacunarity, persistence, scale), 
             perlinNoise(addVec(p, warp), octaves, lacunarity, persistence, scale));
 
-    return perlinNoise(addVec(p, scaleVec(q, warpScale)), octaves, lacunarity, persistence, scale);
+    return perlinNoise(addVec(p, scaleVec(offset, warpScale)), octaves, lacunarity, persistence, scale);
 }
