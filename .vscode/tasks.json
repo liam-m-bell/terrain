@@ -1,0 +1,36 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "cppbuild",
+			"label": "C/C++: gcc build active file",
+			"command": "/usr/bin/gcc",
+			"args": [
+				"-fdiagnostics-color=always",
+				"-g",
+				"${workspaceFolder}/terrain.c",
+				"-o",
+				"${workspaceFolder}/output/terrain.out",
+				"-lm",
+				"${workspaceFolder}/vector.c",
+				"${workspaceFolder}/heightfield.c",
+				"${workspaceFolder}/mesh.c",
+				"${workspaceFolder}/diamond_square.c",
+				"${workspaceFolder}/noise.c",
+			],
+			"options": {
+				"cwd": "${fileDirname}"
+			},
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build",
+			"detail": "compiler: /usr/bin/gcc"
+		},
+		{
+            "label": "png",
+            "type": "shell",
+            "command": "pnmtopng ${workspaceFolder}/output/image.ppm > ${workspaceFolder}/output/image.png"
+        }
+	]
+}
