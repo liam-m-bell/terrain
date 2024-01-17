@@ -42,7 +42,7 @@ int main(){
     srand(time(NULL));
     loadNoisePermutation("perlin_data.txt");
 
-    const int n = 10;
+    const int n = 8;
     const int size = pow(2, n) + 1;
 
     // Create heightfield

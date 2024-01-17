@@ -24,6 +24,8 @@ void addFaceToMesh(Mesh *mesh, unsigned int a, unsigned int b, unsigned int c){
 // Create a mesh from a heightfield
 Mesh *createMeshFromHeightfield(float **heightfield, const int size){
     Mesh *mesh = (Mesh*)malloc(sizeof(Mesh));
+    mesh->vertexCount = 0;
+    mesh->faceCount = 0;
     
     int vertexCount = size * size + 2 * size + 2 * (size - 2);
     mesh->vertices = (Vector*)malloc(vertexCount * sizeof(Vector));
