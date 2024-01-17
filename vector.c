@@ -40,7 +40,7 @@ Vector cross(Vector a, Vector b){
     return result;
 }
 
-Vector scale(Vector v, float scalar){
+Vector scaleVec(Vector v, float scalar){
     Vector result;
     result.x = v.x * scalar;
     result.y = v.y * scalar;
@@ -48,7 +48,7 @@ Vector scale(Vector v, float scalar){
     return result;
 }
 
-Vector add(Vector a, Vector b){
+Vector addVec(Vector a, Vector b){
     Vector result;
     result.x = a.x + b.x;
     result.y = a.y + b.y;
