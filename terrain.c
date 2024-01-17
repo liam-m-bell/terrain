@@ -25,12 +25,31 @@ void freeHeightfield(float **a, const int size){
     free(a);
 }
 
-void generateHeightfieldFromNoise(float** heightmap, int size) {
-    for (int z = 0; z < size; z++) {
-        for (int x = 0; x < size; x++) {
-            float elevation = ridgeNoise(x * 10 / (float)size, z * 10 / (float)size, 6, 0.5f, 0.5f);
+void generateHeightfieldFromNoise(float** heightfield, int size, int octaves, float lacunarity, float persistence, float scale, float height){
+    float min = 0.0f;
+    float max = 0.0f;
+
+    for (int z = 0; z < size; z++){
+        for (int x = 0; x < size; x++){
+            float elevation = perlinNoise(x / (float)size, z / (float)size, octaves, lacunarity, persistence, scale);
+            heightfield[z][x] = elevation;
+
+            if (elevation < min){
+                min = elevation;
+            }
             
-            heightmap[z][x] = elevation * 10;
+            if (elevation > max){
+                max = elevation;
+            }
+        }
+    }
+
+    // Normalise heightfield to height
+    if (max != min){
+        for (int z = 0; z < size; z++){
+            for (int x = 0; x < size; x++){
+                heightfield[z][x] = (heightfield[z][x] - min) / (max - min) * height;
+            }
         }
     }
 }
@@ -40,17 +59,15 @@ int main(){
 
     loadNoisePermutation("perlin_data.txt");
 
-    const int n = 8;
+    const int n = 11;
     const int size = pow(2, n) + 1;
 
     // Create heightfield
     float **heightfield = createHeightfield(size);
 
     // Generate heightfield
-    generateHeightfieldFromNoise(heightfield, size);
+    generateHeightfieldFromNoise(heightfield, size, 9, 2.0f, 0.5f, 4.0f, size / 5.0f);
     //diamondSquare(heightfield, size, 0.45);
-    
-	//printf("Perlin Noise for (%0.2f,%0.2f,%0.2f) is %.17lf",3.14f ,42.0f, 7.0f, noise2D(3.14, 42));
 
     // Create mesh from heightfield
     Mesh *mesh = createMeshFromHeightfield(heightfield, size);

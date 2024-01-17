@@ -57,25 +57,25 @@ void loadNoisePermutation(char* fileName){
 
 // Noise functions
 
-float perlinNoise(float x, float y, int octaves, float lacunarity, float gain){
+float perlinNoise(float x, float y, int octaves, float lacunarity, float persistence, float scale){
 	float sum = 0.0f;
-	float frequency = 1.0f;
+	float frequency = scale;
 	float amplitude = 1.0f;
 
 	for(int i = 0; i < octaves; i++) {
 		float n = noise2D(x * frequency, y * frequency);
 		sum += n * amplitude;
 		frequency *= lacunarity;
-		amplitude *= gain;
+		amplitude *= persistence;
 	} 
 
 	return sum;
 }
 
-float billowNoise(float x, float y, int octaves, float lacunarity, float gain){
-	return fabs(perlinNoise(x, y, octaves, lacunarity, gain));
+float billowNoise(float x, float y, int octaves, float lacunarity, float gain, float scale){
+	return fabs(perlinNoise(x, y, octaves, lacunarity, gain, scale));
 }
 
-float ridgeNoise(float x, float y, int octaves, float lacunarity, float gain){
-	return 1.0f - billowNoise(x, y, octaves, lacunarity, gain);
+float ridgeNoise(float x, float y, int octaves, float lacunarity, float gain, float scale){
+	return 1.0f - billowNoise(x, y, octaves, lacunarity, gain, scale);
 }
