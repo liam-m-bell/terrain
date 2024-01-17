@@ -5,6 +5,7 @@
 
 #include "mesh.h"
 #include "diamond_square.h"
+#include "noise.h"
 
 // Allocates memory for a heightfield
 float **createHeightfield(const int size){
@@ -24,17 +25,32 @@ void freeHeightfield(float **a, const int size){
     free(a);
 }
 
+void generateHeightfieldFromNoise(float** heightmap, int size) {
+    for (int z = 0; z < size; z++) {
+        for (int x = 0; x < size; x++) {
+            float elevation = ridgeNoise(x * 10 / (float)size, z * 10 / (float)size, 6, 0.5f, 0.5f);
+            
+            heightmap[z][x] = elevation * 10;
+        }
+    }
+}
+
 int main(){
     srand(time(NULL));
 
-    const int n = 7;
+    loadNoisePermutation("perlin_data.txt");
+
+    const int n = 8;
     const int size = pow(2, n) + 1;
 
     // Create heightfield
     float **heightfield = createHeightfield(size);
 
     // Generate heightfield
-    diamondSquare(heightfield, size, 0.45);
+    generateHeightfieldFromNoise(heightfield, size);
+    //diamondSquare(heightfield, size, 0.45);
+    
+	//printf("Perlin Noise for (%0.2f,%0.2f,%0.2f) is %.17lf",3.14f ,42.0f, 7.0f, noise2D(3.14, 42));
 
     // Create mesh from heightfield
     Mesh *mesh = createMeshFromHeightfield(heightfield, size);
