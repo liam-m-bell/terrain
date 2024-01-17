@@ -14,7 +14,8 @@ void generateHeightfieldFromNoise(float** heightfield, int size, int octaves, fl
 
     for (int z = 0; z < size; z++){
         for (int x = 0; x < size; x++){
-            float elevation = perlinNoise(x / (float)size, z / (float)size, octaves, lacunarity, persistence, scale);
+            //float elevation = perlinNoise(vector2(x / (float)size, z / (float)size), octaves, lacunarity, persistence, scale);
+            float elevation = warpedNoise(vector2(5.2f, 1.3f), 0.0f, vector2(x / (float)size, z / (float)size), octaves, lacunarity, persistence, scale);
             heightfield[z][x] = elevation;
 
             if (elevation < min){
@@ -42,7 +43,7 @@ int main(){
 
     loadNoisePermutation("perlin_data.txt");
 
-    const int n = 8;
+    const int n = 10;
     const int size = pow(2, n) + 1;
 
     // Create heightfield

@@ -4,6 +4,8 @@
 #include<stdio.h>
 #include<math.h>
 
+#include "noise.h"
+
 int p[512];
 
 double fade(double t) { return t * t * t * (t * (t * 6 - 15) + 10); }
@@ -57,13 +59,13 @@ void loadNoisePermutation(char* fileName){
 
 // Noise functions
 
-float perlinNoise(float x, float y, int octaves, float lacunarity, float persistence, float scale){
+float perlinNoise(Vector p, int octaves, float lacunarity, float persistence, float scale){
 	float sum = 0.0f;
 	float frequency = scale;
 	float amplitude = 1.0f;
 
 	for(int i = 0; i < octaves; i++) {
-		float n = noise2D(x * frequency, y * frequency);
+		float n = noise2D(p.x * frequency, p.y * frequency);
 		sum += n * amplitude;
 		frequency *= lacunarity;
 		amplitude *= persistence;
@@ -72,10 +74,27 @@ float perlinNoise(float x, float y, int octaves, float lacunarity, float persist
 	return sum;
 }
 
-float billowNoise(float x, float y, int octaves, float lacunarity, float gain, float scale){
-	return fabs(perlinNoise(x, y, octaves, lacunarity, gain, scale));
+float billowNoise(Vector p, int octaves, float lacunarity, float gain, float scale){
+	return fabs(perlinNoise(p, octaves, lacunarity, gain, scale));
 }
 
-float ridgeNoise(float x, float y, int octaves, float lacunarity, float gain, float scale){
-	return 1.0f - billowNoise(x, y, octaves, lacunarity, gain, scale);
+float ridgeNoise(Vector p, int octaves, float lacunarity, float gain, float scale){
+	return 1.0f - billowNoise(p, octaves, lacunarity, gain, scale);
+}
+
+float randRange(float min, float max){
+    return min + (max - min) * ((float)rand() / RAND_MAX);
+}
+
+float warpedNoise(Vector warp, float warpScale, Vector p, int octaves, float lacunarity, float persistence, float scale){
+    // // Vector q = vector2(perlinNoise(addVec(p, vector2(0.0f, 0.0f)), octaves, lacunarity, persistence, scale),
+    // //                     perlinNoise(addVec(p, warp), octaves, lacunarity, persistence, scale));
+    
+    // Vector offset = vector2(randRange(-1.0f, 1.0f), randRange(-1.0f, 1.0f));
+    // return perlinNoise(addVec(p, offset), octaves, lacunarity, persistence, scale);
+
+    Vector q = vector2(perlinNoise(p, octaves, lacunarity, persistence, scale), 
+            perlinNoise(addVec(p, warp), octaves, lacunarity, persistence, scale));
+
+    return perlinNoise(addVec(p, scaleVec(q, warpScale)), octaves, lacunarity, persistence, scale);
 }

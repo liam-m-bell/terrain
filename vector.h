@@ -16,7 +16,7 @@ float length(Vector v);
 Vector normalise(Vector v);
 float dot(Vector a, Vector b);
 Vector cross(Vector a, Vector b);
-Vector scale(Vector v, float scalar);
-Vector add(Vector a, Vector b);
+Vector scaleVec(Vector v, float scalar);
+Vector addVec(Vector a, Vector b);
 
 #endif
