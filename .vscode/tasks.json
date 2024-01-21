@@ -12,12 +12,13 @@
 				"-o",
 				"${workspaceFolder}/output/terrain.out",
 				"-lm",
-				"${workspaceFolder}/vector.c",
-				"${workspaceFolder}/heightfield.c",
-				"${workspaceFolder}/mesh.c",
-				"${workspaceFolder}/diamond_square.c",
-				"${workspaceFolder}/noise.c",
-				"${workspaceFolder}/musgrave_erosion.c"
+				"${workspaceFolder}/core/vector.c",
+				"${workspaceFolder}/core/heightfield.c",
+				"${workspaceFolder}/core/mesh.c",
+				"${workspaceFolder}/core/noise.c",
+				"${workspaceFolder}/procedural/diamond_square.c",
+				"${workspaceFolder}/procedural/noise_heightfield.c",
+				"${workspaceFolder}/simulation/musgrave_erosion.c"
 			],
 			"options": {
 				"cwd": "${fileDirname}"

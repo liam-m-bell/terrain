@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "heightfield.h"
-#include "vector.h"
+#include "../core/heightfield.h"
+#include "../core/vector.h"
 
 float min(float a, float b){
     return (a < b ? a : b);
