@@ -7,6 +7,7 @@
 #include "mesh.h"
 #include "diamond_square.h"
 #include "noise.h"
+#include "simulation.h"
 
 void generateHeightfieldFromNoise(float** heightfield, int size, int octaves, float lacunarity, float persistence, float scale, float height){
     float min = 0.0f;
@@ -38,18 +39,23 @@ void generateHeightfieldFromNoise(float** heightfield, int size, int octaves, fl
     }
 }
 
+
+
 int main(){
     srand(time(NULL));
     loadNoisePermutation("perlin_data.txt");
 
-    const int n = 8;
+    const int n = 9;
     const int size = pow(2, n) + 1;
 
     // Create heightfield
     float **heightfield = createHeightfield(size);
 
     // Generate heightfield
-    generateHeightfieldFromNoise(heightfield, size, 9, 2.0f, 0.5f, 4.0f, size / 5.0f);
+    generateHeightfieldFromNoise(heightfield, size, 7, 2.0f, 0.5f, 4.0f, size / 5.0f);
+
+    // Simulation
+    hydraulicErosion(heightfield, size, 200, 0.5f, 0.01f, 0.3f);
 
     // Output heightfield as image
     outputHeightfieldAsImage(heightfield, size, size / 5.0f, "image.ppm");
