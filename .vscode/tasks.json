@@ -17,6 +17,7 @@
 				"${workspaceFolder}/mesh.c",
 				"${workspaceFolder}/diamond_square.c",
 				"${workspaceFolder}/noise.c",
+				"${workspaceFolder}/musgrave_erosion.c"
 			],
 			"options": {
 				"cwd": "${fileDirname}"
