@@ -7,7 +7,7 @@
 #include "mesh.h"
 #include "diamond_square.h"
 #include "noise.h"
-#include "simulation.h"
+#include "musgrave_erosion.h"
 
 void generateHeightfieldFromNoise(float** heightfield, int size, int octaves, float lacunarity, float persistence, float scale, float height){
     float min = 0.0f;
@@ -45,17 +45,17 @@ int main(){
     srand(time(NULL));
     loadNoisePermutation("perlin_data.txt");
 
-    const int n = 9;
+    const int n = 8;
     const int size = pow(2, n) + 1;
 
     // Create heightfield
     float **heightfield = createHeightfield(size);
 
     // Generate heightfield
-    generateHeightfieldFromNoise(heightfield, size, 7, 2.0f, 0.5f, 4.0f, size / 5.0f);
+    generateHeightfieldFromNoise(heightfield, size, 5, 2.0f, 0.5f, 4.0f, size / 5.0f);
 
     // Simulation
-    hydraulicErosion(heightfield, size, 200, 0.5f, 0.01f, 0.3f);
+    musgraveErosion(heightfield, size, 10, 0.5f, 0.01f, 0.3f, 10, 0.005f, 0.4f, 0.05f);
 
     // Output heightfield as image
     outputHeightfieldAsImage(heightfield, size, size / 5.0f, "image.ppm");

@@ -62,7 +62,7 @@ typedef struct {
     float sediment;
 } Vertex;
 
-void hydraulicErosion(float **heightfield, const int size, const int iterations, const float maxSedimentCapacity, const float depositionRate, const float soilSoftness){
+void musgraveErosion(float **heightfield, const int size, const int iterations, const float maxSedimentCapacity, const float depositionRate, const float soilSoftness, const int rainFrequency, const int rainVolume, const float talusAngle, const float thermalAmount){
     // Allocates memory for a erosion vertex field
     Vertex **grid = (Vertex**)malloc(size * sizeof(Vertex*));
     for (int z = 0; z < size; z++){
@@ -84,17 +84,17 @@ void hydraulicErosion(float **heightfield, const int size, const int iterations,
     }
 
     for (int i = 0; i < iterations; i++){
-        if (i % (iterations/100) == 0){
+        if (iterations>= 100 && i % (iterations/100) == 0){
             int pct = ((float) i / (float)iterations) * 100;
             printf("Simulating Erosion: (%3d%%)\r", pct);
             fflush(stdout);
         }
         
         //Rainfall
-        if (i % 10 == 0){
+        if (i % rainFrequency == 0){
             for (int z = 0; z < size; z++){
                 for (int x = 0; x < size; x++){   
-                    grid[z][x].water += grid[z][x].height * .005f;
+                    grid[z][x].water += grid[z][x].height * rainVolume;
                 }
             }
         }
@@ -169,10 +169,13 @@ void hydraulicErosion(float **heightfield, const int size, const int iterations,
                         vNew.sediment += -v.sediment;
                     }
 
-                    // Save updated values for vertex u
-                    gridUpdate[nz][nx] = uNew;
+                    // Thermal
+                    if (vNew.height - uNew.height > talusAngle){
+                        uNew.height += thermalAmount * (vNew.height - uNew.height - talusAngle);
+                    }
 
                     // Save updated values for vertex u
+                    gridUpdate[nz][nx].height += uNew.height;
                     gridUpdate[nz][nx].water += uNew.water;
                     gridUpdate[nz][nx].sediment += uNew.sediment;
                 }
@@ -215,131 +218,3 @@ void hydraulicErosion(float **heightfield, const int size, const int iterations,
 
     smooth(heightfield, size);
 }
-
-// void hydraulicErosion(float **heightfield, const int size, const int iterations, const float maxSedimentCapacity, const float depositionRate, const float soilSoftness){
-//     // Allocates memory for a erosion vertex field
-//     Vertex **grid = (Vertex**)malloc(size * sizeof(Vertex*));
-//     for (int z = 0; z < size; z++){
-//         grid[z] = (Vertex*)malloc(size * sizeof(Vertex));
-//         for (int x = 0; x < size; x++){
-//             grid[z][x].height = heightfield[z][x];//(float)((z)/(float)size * 20);//
-//             grid[z][x].water = 0.0f;
-//             grid[z][x].sediment = 0.0f;
-//         }
-//     }
-
-//     Vertex **gridUpdate = (Vertex**)malloc(size * sizeof(Vertex*));
-//     for (int z = 0; z < size; z++){
-//         gridUpdate[z] = (Vertex*)malloc(size * sizeof(Vertex));
-//         for (int x = 0; x < size; x++){
-//             gridUpdate[z][x] = grid[z][x];
-//         }
-//     }
-
-//     for (int i = 0; i < iterations; i++){
-//         // Rainfall
-//         if (i % 30 == 0){
-//             for (int z = 0; z < size; z++){
-//                 for (int x = 0; x < size; x++){   
-//                     grid[z][x].water += grid[z][x].height * .005f;
-//                 }
-//             }
-//         }
-
-//         // Erosion
-//         for (int z = 0; z < size; z++){
-//             for (int x = 0; x < size; x++){
-//                 Vertex v = grid[z][x];
-//                 Vertex vNew;
-
-//                 Vector neighbours[9];
-//                 int neighboursCount = getNeighbours(vector2(x, z), size, neighbours);
-//                 float deltaWaterTotal = 0.0f;
-//                 float heightDifferenceTotal = 0.0f;
-//                 for (int n = 0; n < 9; n++){
-//                     if (neighbours[n].x < 0){
-//                         // Edge
-//                         continue;
-//                     }
-
-//                     int nx = neighbours[n].x;
-//                     int nz = neighbours[n].y;
-//                     Vertex u = grid[nz][nx];
-
-//                     float deltaWater = (v.height + v.water) - (u.height + u.water);
-
-//                     if(deltaWater > 0) {
-//                         deltaWaterTotal += deltaWater;
-//                     }
-//                     else{
-//                         // Higher
-//                         neighbours[n] = vector2(-1.0f, -1.0f);
-//                     }
-//                 }
-                  
-//                 if (deltaWaterTotal <= 0.0f){
-//                     vNew.height = v.height + depositionRate * v.sediment;
-//                     vNew.sediment = (1.0f - depositionRate) * v.sediment;
-//                 }
-
-//                 for (int n = 0; n < 9; n++){
-//                     if (neighbours[n].x < 0){
-//                         // Edge
-//                         continue;
-//                     }
-                    
-//                     int nx = neighbours[n].x;
-//                     int nz = neighbours[n].y;
-//                     Vertex u = grid[nz][nx];
-//                     Vertex uNew;
-
-//                     float deltaWater = (v.height + v.water) - (u.height + u.water);
-//                     deltaWater = min(v.water, deltaWater) * deltaWater / deltaWaterTotal;
-
-//                     vNew.water = v.water -deltaWater;
-//                     uNew.water = u.water + deltaWater;
-
-//                     float sedimentCapacity = maxSedimentCapacity * deltaWater;
-
-//                     if (v.sediment >= sedimentCapacity){
-//                         uNew.sediment = u.sediment + sedimentCapacity;
-//                         vNew.height = v.height + depositionRate * (v.sediment - sedimentCapacity);
-//                         vNew.sediment = (1.0f - depositionRate) * (v.sediment - sedimentCapacity);
-//                     }
-//                     else{
-//                         uNew.sediment = u.sediment + v.sediment + soilSoftness * (sedimentCapacity - v.sediment);
-//                         vNew.height = v.height - soilSoftness * (sedimentCapacity - v.sediment);
-//                         vNew.sediment = 0.0f;
-//                     }
-
-//                     // Thermal
-//                     // float talusAngle = 0.3;
-
-//                     // if (vNew.height - uNew.height > talusAngle){
-//                     //     uNew.height += 0.001 * (vNew.height - uNew.height - talusAngle);
-//                     // }
-
-//                     // Save updated values for vertex u
-//                     gridUpdate[nz][nx] = uNew;
-//                 }
-
-//                 // Save updated values for vertex v
-//                 gridUpdate[z][x] = vNew;
-//                 //gridUpdate[z][x].height = max(0.0f, vNew.height);
-//             }
-//         }
-//     }
-
-//     for (int z = 0; z < size; z++){
-//         for (int x = 0; x < size; x++){
-//             heightfield[z][x] = grid[z][x].height;
-//         }
-//     }
-
-//     for (int z = 0; z < size; z++){
-//         free(grid[z]);
-//         free(gridUpdate[z]);
-//     }
-//     free(grid);
-//     free(gridUpdate);
-// }
