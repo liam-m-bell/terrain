@@ -12,7 +12,7 @@ Triangle makeTriangle(unsigned int a, unsigned int b, unsigned int c){
 }
 
 void addVertexToMesh(Mesh *mesh, float x, float y, float z){
-    mesh->vertices[mesh->vertexCount] = vector3(x, y, z);
+    mesh->vertices[mesh->vertexCount] = Vector(x, y, z);
     (mesh->vertexCount)++;
 }
 
