@@ -32,10 +32,10 @@ float randRange(float min, float max){
 }
 
 float warpedNoise(Vector warp, float warpScale, Vector p, int octaves, float lacunarity, float persistence, float scale){
-    Vector offset = vector2(perlinNoise(p, octaves, lacunarity, persistence, scale), 
-            perlinNoise(addVec(p, warp), octaves, lacunarity, persistence, scale));
+    Vector offset = Vector(perlinNoise(p, octaves, lacunarity, persistence, scale), 
+            perlinNoise(p + warp, octaves, lacunarity, persistence, scale));
 
-    return perlinNoise(addVec(p, scaleVec(offset, warpScale)), octaves, lacunarity, persistence, scale);
+    return perlinNoise(p + offset * warpScale, octaves, lacunarity, persistence, scale);
 }
 
 void generateHeightfieldFromNoise(float** heightfield, int size, int octaves, float lacunarity, float persistence, float scale, float height){
@@ -44,8 +44,8 @@ void generateHeightfieldFromNoise(float** heightfield, int size, int octaves, fl
 
     for (int z = 0; z < size; z++){
         for (int x = 0; x < size; x++){
-            //float elevation = perlinNoise(vector2(x / (float)size, z / (float)size), octaves, lacunarity, persistence, scale);
-            float elevation = warpedNoise(vector2(5.2f, 1.3f), 0.0f, vector2(x / (float)size, z / (float)size), octaves, lacunarity, persistence, scale);
+            //float elevation = perlinNoise(Vector(x / (float)size, z / (float)size), octaves, lacunarity, persistence, scale);
+            float elevation = warpedNoise(Vector(5.2f, 1.3f), 0.0f, Vector(x / (float)size, z / (float)size), octaves, lacunarity, persistence, scale);
             heightfield[z][x] = elevation;
 
             if (elevation < min){

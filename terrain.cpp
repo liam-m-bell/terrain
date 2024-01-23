@@ -12,7 +12,7 @@
 
 int main(){
     srand(time(NULL));
-    loadNoisePermutation("perlin_data.txt");
+    loadNoisePermutation((char*)"perlin_data.txt");
 
     const int n = 8;
     const int size = pow(2, n) + 1;
@@ -27,7 +27,7 @@ int main(){
     musgraveErosion(heightfield, size, 10, 0.5f, 0.01f, 0.3f, 10, 0.005f, 0.4f, 0.05f);
 
     // Output heightfield as image
-    outputHeightfieldAsImage(heightfield, size, size / 5.0f, "image.ppm");
+    outputHeightfieldAsImage(heightfield, size, size / 5.0f, (char*)"image.ppm");
 
     // Create mesh from heightfield and export as OBJ file
     Mesh *mesh = createMeshFromHeightfield(heightfield, size);

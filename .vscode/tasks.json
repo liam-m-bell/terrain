@@ -4,21 +4,21 @@
 		{
 			"type": "cppbuild",
 			"label": "C/C++: gcc build active file",
-			"command": "/usr/bin/gcc",
+			"command": "/usr/bin/g++",
 			"args": [
 				"-fdiagnostics-color=always",
 				"-g",
-				"${workspaceFolder}/terrain.c",
+				"${workspaceFolder}/terrain.cpp",
 				"-o",
 				"${workspaceFolder}/output/terrain.out",
 				"-lm",
-				"${workspaceFolder}/core/vector.c",
-				"${workspaceFolder}/core/heightfield.c",
-				"${workspaceFolder}/core/mesh.c",
-				"${workspaceFolder}/core/noise.c",
-				"${workspaceFolder}/procedural/diamond_square.c",
-				"${workspaceFolder}/procedural/noise_heightfield.c",
-				"${workspaceFolder}/simulation/musgrave_erosion.c"
+				//"${workspaceFolder}/core/vector.cpp",
+				"${workspaceFolder}/core/heightfield.cpp",
+				"${workspaceFolder}/core/mesh.cpp",
+				"${workspaceFolder}/core/noise.cpp",
+				"${workspaceFolder}/procedural/diamond_square.cpp",
+				"${workspaceFolder}/procedural/noise_heightfield.cpp",
+				"${workspaceFolder}/simulation/musgrave_erosion.cpp"
 			],
 			"options": {
 				"cwd": "${fileDirname}"

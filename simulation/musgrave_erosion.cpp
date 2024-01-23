@@ -20,13 +20,13 @@ int getNeighbours(Vector p, const int size, Vector *neighbours){
             int ny = p.y + y - 1;
 
             if (y == 1 && x == 1){
-                neighbours[4] = vector2(-1.0f, -1.0f);
+                neighbours[4] = Vector(-1.0f, -1.0f);
             }
             else if (nx < 0 || ny < 0 || (nx >= size) || (ny >= size)){
-                neighbours[y * 3 + x] = vector2(-1.0f, -1.0f);
+                neighbours[y * 3 + x] = Vector(-1.0f, -1.0f);
             }
             else{
-                neighbours[y * 3 + x] = vector2(nx, ny);
+                neighbours[y * 3 + x] = Vector(nx, ny);
                 count++;
             }
             
@@ -41,7 +41,7 @@ void smooth(float **heightfield, const int size){
         for (int x = 0; x < size; x++){
             float avg = 0.0f;
             Vector neighbours[9];
-            int neighboursCount = getNeighbours(vector2(x, z), size, neighbours);
+            int neighboursCount = getNeighbours(Vector(x, z), size, neighbours);
             for (int n = 0; n < 9; n++){
                 if (neighbours[n].x < 0){
                     // Edge
@@ -106,7 +106,7 @@ void musgraveErosion(float **heightfield, const int size, const int iterations, 
                 Vertex vNew = {0.0f, 0.0f, 0.0f};
 
                 Vector neighbours[9];
-                int neighboursCount = getNeighbours(vector2(x, z), size, neighbours);
+                int neighboursCount = getNeighbours(Vector(x, z), size, neighbours);
                 float deltaWaterTotal = 0.0f;
                 float heightDifferenceTotal = 0.0f;
                 for (int n = 0; n < 9; n++){
@@ -126,7 +126,7 @@ void musgraveErosion(float **heightfield, const int size, const int iterations, 
                     }
                     else{
                         // Higher
-                        neighbours[n] = vector2(-1.0f, -1.0f);
+                        neighbours[n] = Vector(-1.0f, -1.0f);
                     }
                 }
                   
