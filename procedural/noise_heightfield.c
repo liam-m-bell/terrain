@@ -1,5 +1,42 @@
+#include <stdlib.h>
+
 #include "../core/vector.h"
 #include "../core/noise.h"
+
+// Noise functions
+float perlinNoise(Vector p, int octaves, float lacunarity, float persistence, float scale){
+	float sum = 0.0f;
+	float frequency = scale;
+	float amplitude = 1.0f;
+
+	for(int i = 0; i < octaves; i++) {
+		float n = noise2D(p.x * frequency, p.y * frequency);
+		sum += n * amplitude;
+		frequency *= lacunarity;
+		amplitude *= persistence;
+	} 
+
+	return sum;
+}
+
+float billowNoise(Vector p, int octaves, float lacunarity, float gain, float scale){
+	return fabs(perlinNoise(p, octaves, lacunarity, gain, scale));
+}
+
+float ridgeNoise(Vector p, int octaves, float lacunarity, float gain, float scale){
+	return 1.0f - billowNoise(p, octaves, lacunarity, gain, scale);
+}
+
+float randRange(float min, float max){
+    return min + (max - min) * ((float)rand() / RAND_MAX);
+}
+
+float warpedNoise(Vector warp, float warpScale, Vector p, int octaves, float lacunarity, float persistence, float scale){
+    Vector offset = vector2(perlinNoise(p, octaves, lacunarity, persistence, scale), 
+            perlinNoise(addVec(p, warp), octaves, lacunarity, persistence, scale));
+
+    return perlinNoise(addVec(p, scaleVec(offset, warpScale)), octaves, lacunarity, persistence, scale);
+}
 
 void generateHeightfieldFromNoise(float** heightfield, int size, int octaves, float lacunarity, float persistence, float scale, float height){
     float min = 0.0f;

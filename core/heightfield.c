@@ -19,7 +19,7 @@ void freeHeightfield(float **a, const int size){
     free(a);
 }
 
-// https://rosettacode.org/wiki/Bitmap/Write_a_PPM_file
+// Adapted from https://rosettacode.org/wiki/Bitmap/Write_a_PPM_file
 void outputHeightfieldAsImage(float **a, const int size, const float maxHeight, char *filename){
     FILE *imageFile = fopen(filename, "wb");
     fprintf(imageFile, "P6\n%d %d\n255\n", size, size);
