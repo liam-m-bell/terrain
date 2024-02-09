@@ -1,0 +1,4 @@
+[ZoneTransfer]
+ZoneId=3
+ReferrerUrl=https://github.com/
+HostUrl=https://raw.githubusercontent.com/thinks/poisson-disk-sampling/master/thinks/poisson_disk_sampling/poisson_disk_sampling.h
