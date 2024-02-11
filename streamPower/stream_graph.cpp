@@ -52,6 +52,8 @@ void StreamGraph::initialise(){
         Triangle face = {(unsigned int)tri.vertices[0], (unsigned int)tri.vertices[1], (unsigned int)tri.vertices[2]};
         triangles.push_back(face);
     }
+
+    voronoiTessellation();
 }
 
 Mesh* StreamGraph::createMesh(){
@@ -60,7 +62,7 @@ Mesh* StreamGraph::createMesh(){
     mesh->vertexCount = nodes.size();
     mesh->vertices = (Vector*)malloc(mesh->vertexCount * sizeof(Vector));
     for (int i = 0; i < mesh->vertexCount; i++){
-        mesh->vertices[i] = Vector(nodes[i].x, nodes[i].height, nodes[i].y);
+        mesh->vertices[i] = Vector(nodes[i].position.x, nodes[i].height, nodes[i].position.y);
     }
 
     mesh->faceCount = triangles.size();
@@ -70,4 +72,46 @@ Mesh* StreamGraph::createMesh(){
     }
 
     return mesh;
+}
+
+Vector circumcentreOfTriangle(Vector a, Vector b, Vector c){
+    float t = a.len_sqr() - b.len_sqr();
+    float u = a.len_sqr() - c.len_sqr();
+    float J = ((a.x - b.x) * (a.y - c.y) - ((a.x - c.x) * (a.y - b.y))) / 2.0f;
+
+    Vector centre = (-(a - b) * u + (a - c) * t) * J;
+    return centre;
+}
+
+float areaOfTriangle(Vector a, Vector b, Vector c){
+    return fabs(a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y)) / 2;
+}
+
+void StreamGraph::voronoiTessellation(){
+    // For each triangle:
+        //calculate circumference
+        // For each node in triangle:
+            // Calculate perpendicular bisectors
+            //Calculate area of quad (two triangles)
+            // Add this to node's area
+
+    for (Triangle tri : triangles){
+        Vector circumcentre = circumcentreOfTriangle(nodes[tri.v0].position, nodes[tri.v1].position, nodes[tri.v2].position);
+        int vertexIndicies[3] = {tri.v0, tri.v1, tri.v2};
+        for (int j = 0; j < 3; j++){
+            StreamNode *node = &nodes[vertexIndicies[j]];
+            for (int k = 0; k < 3; k++){
+                if (k != j){
+                    StreamNode neighbour = nodes[vertexIndicies[k]];
+                    Vector midpoint = 0.5f * (node->position + neighbour.position);
+                    float area = areaOfTriangle(node->position, midpoint, circumcentre);
+                    node->voronoiArea += area;
+                }
+            }
+        }
+    }
+
+    for (auto node : nodes){
+        std::cout << node.voronoiArea << "\n";
+    }
 }

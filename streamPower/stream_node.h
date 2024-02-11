@@ -2,17 +2,17 @@
 #define STREAM_NODE_H_
 
 #include "graph/node.h"
+#include "../core/vector.h"
 
 class StreamNode : public Node{
 public:
-    float x;
-    float y;
+    Vector position;
     float height;
     float uplift;
+    float voronoiArea = 0;
 
     StreamNode(float x, float y, float height, float uplift){
-        this->x = x;
-        this->y = y;
+        this->position = Vector(x, y);
         this->height = height;
         this->uplift = uplift;
     }

@@ -26,5 +26,5 @@ public:
     
     void initialise();
     Mesh *createMesh();
-    // void voronoiTessellation();
+    void voronoiTessellation();
 };
