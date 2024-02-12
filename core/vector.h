@@ -40,6 +40,7 @@ public:
 	{
 		x = px;
 		y = py;
+		z = 0.0f;
 	}
 
 	Vector()

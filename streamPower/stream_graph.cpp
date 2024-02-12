@@ -10,6 +10,16 @@ float getInitalUplift(float x, float y){
     return 1.0f;
 }
 
+Vector circumcentreOfTriangle(Vector a, Vector b, Vector c){
+    float t = a.len_sqr() - b.len_sqr();
+    float u = a.len_sqr() - c.len_sqr();
+    float J = ((a.x - b.x) * (a.y - c.y) - ((a.x - c.x) * (a.y - b.y))) * 2.0f;
+
+    float x = (-(a.y - b.y) * u + (a.y - c.y) * t) / J;
+    float y = ((a.x - b.x) * u - (a.x - c.x) * t) / J;
+    return Vector(x, y);
+}
+
 void StreamGraph::initialise(){
     // Input parameters.
     auto kRadius = (float)terrainSize / sqrt((float)nodeCount);
@@ -19,6 +29,11 @@ void StreamGraph::initialise(){
     // Samples returned as std::vector<std::array<float, 2>>.
     // Default seed and max sample attempts.
     std::vector<Vector> points;
+    // points.push_back(Vector(0, 0));
+    // points.push_back(Vector(terrainSize, 0));
+    // points.push_back(Vector(0, terrainSize));
+    // points.push_back(Vector(terrainSize, terrainSize));
+
     for (auto p : thinks::PoissonDiskSampling(kRadius, kXMin, kXMax)){
         points.push_back(Vector(p[0], p[1]));
     }
@@ -36,10 +51,19 @@ void StreamGraph::initialise(){
         [](const Vector& p){ return p.x; },
         [](const Vector& p){ return p.y; }
     );
+
+    std::vector<CDT::Edge> edges = {{0, 1}, {1, 3}, {3, 2}, {2, 0}};
+    //cdt.conformToEdges(edges);
+    //.cdt.eraseOuterTrianglesAndHoles();
     cdt.eraseSuperTriangle();
 
-    int a = cdt.triangles.size();
     for (auto tri : cdt.triangles){
+        Vector centre = circumcentreOfTriangle(nodes[tri.vertices[0]].position, nodes[tri.vertices[1]].position, nodes[tri.vertices[2]].position);
+        if (centre.x <= 0.0f || centre.y <= 0.0f || centre.x > (float)terrainSize || centre.y > (float)terrainSize){
+            //Exclude
+            continue;
+        }
+
         nodes[tri.vertices[0]].addEdge(&nodes[tri.vertices[1]]);
         nodes[tri.vertices[0]].addEdge(&nodes[tri.vertices[2]]);
         
@@ -74,15 +98,6 @@ Mesh* StreamGraph::createMesh(){
     return mesh;
 }
 
-Vector circumcentreOfTriangle(Vector a, Vector b, Vector c){
-    float t = a.len_sqr() - b.len_sqr();
-    float u = a.len_sqr() - c.len_sqr();
-    float J = ((a.x - b.x) * (a.y - c.y) - ((a.x - c.x) * (a.y - b.y))) / 2.0f;
-
-    Vector centre = (-(a - b) * u + (a - c) * t) * J;
-    return centre;
-}
-
 float areaOfTriangle(Vector a, Vector b, Vector c){
     return fabs(a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y)) / 2;
 }
@@ -111,7 +126,10 @@ void StreamGraph::voronoiTessellation(){
         }
     }
 
+    float sum = 0.0f;
     for (auto node : nodes){
+        sum += node.voronoiArea;
         std::cout << node.voronoiArea << "\n";
     }
+    std::cout << "Total:" << sum << "\n";
 }
