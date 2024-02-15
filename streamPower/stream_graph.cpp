@@ -4,6 +4,7 @@
 #include "poisson_disk_sampling.h"
 #include <iostream>
 
+
 #include "../core/noise.h"
 
 float getInitalUplift(float x, float y){
@@ -20,6 +21,34 @@ Vector circumcentreOfTriangle(Vector a, Vector b, Vector c){
     return Vector(x, y);
 }
 
+// int minElement(float a, float b, float c){
+//     float min = a;
+//     float minIndex = 0;
+    
+//     if (b < min){
+//         min = b;
+//         minIndex = 1;
+//     }
+//     if (c < min){
+//         minIndex = 2;
+//     }
+//     return minIndex;
+// }
+
+// int maxElement(float a, float b, float c){
+//     float max = a;
+//     float maxIndex = 0;
+    
+//     if (b > max){
+//         max = b;
+//         maxIndex = 1;
+//     }
+//     if (c < max){
+//         maxIndex = 2;
+//     }
+//     return maxIndex;
+// }
+
 void StreamGraph::initialise(){
     // Input parameters.
     auto kRadius = (float)terrainSize / sqrt((float)nodeCount);
@@ -29,18 +58,16 @@ void StreamGraph::initialise(){
     // Samples returned as std::vector<std::array<float, 2>>.
     // Default seed and max sample attempts.
     std::vector<Vector> points;
-    // points.push_back(Vector(0, 0));
-    // points.push_back(Vector(terrainSize, 0));
-    // points.push_back(Vector(0, terrainSize));
-    // points.push_back(Vector(terrainSize, terrainSize));
 
     for (auto p : thinks::PoissonDiskSampling(kRadius, kXMin, kXMax)){
         points.push_back(Vector(p[0], p[1]));
     }
 
     for (Vector v : points){
-        float height = (float)rand() / ((float)RAND_MAX + 1) * 4.0f;//warpedNoise(Vector(5.2f, 1.3f), 0.0f, Vector(v.x / (float)terrainSize, v.y / (float)terrainSize), 5, 2.0f, 0.5f, 40.0f);
-        nodes.push_back(StreamNode(v.x, v.y, height, getInitalUplift(v.x, v.y)));
+        float upl = 0.1f;//(float)rand() / ((float)RAND_MAX + 1) * 0.005f;//warpedNoise(Vector(5.2f, 1.3f), 0.0f, Vector(v.x / (float)terrainSize, v.y / (float)terrainSize), 5, 2.0f, 0.5f, 40.0f);
+        //float height = (float)rand() / ((float)RAND_MAX + 1) * 0.02f;
+        float height = (Vector((float)terrainSize / 2, (float)terrainSize / 2) - v).length() * -0.1;
+        nodes.push_back(StreamNode(v.x, v.y, 0.0f, upl));
         std::cout << v.x << "," << v.y << "\n";
     }
 
@@ -52,10 +79,9 @@ void StreamGraph::initialise(){
         [](const Vector& p){ return p.y; }
     );
 
-    std::vector<CDT::Edge> edges = {{0, 1}, {1, 3}, {3, 2}, {2, 0}};
-    //cdt.conformToEdges(edges);
-    //.cdt.eraseOuterTrianglesAndHoles();
     cdt.eraseSuperTriangle();
+
+    
 
     for (auto tri : cdt.triangles){
         Vector centre = circumcentreOfTriangle(nodes[tri.vertices[0]].position, nodes[tri.vertices[1]].position, nodes[tri.vertices[2]].position);
@@ -73,8 +99,31 @@ void StreamGraph::initialise(){
         nodes[tri.vertices[2]].addEdge(&nodes[tri.vertices[0]]);
         nodes[tri.vertices[2]].addEdge(&nodes[tri.vertices[1]]);
 
+        edges.push_back(std::make_tuple(tri.vertices[0], tri.vertices[1]));
+        edges.push_back(std::make_tuple(tri.vertices[1], tri.vertices[2]));
+        edges.push_back(std::make_tuple(tri.vertices[2], tri.vertices[0]));
+
         Triangle face = {(unsigned int)tri.vertices[0], (unsigned int)tri.vertices[1], (unsigned int)tri.vertices[2]};
         triangles.push_back(face);
+    }
+
+    // Get boundary nodes
+    for (int i = 0; i < edges.size(); i++){
+        bool isBoundaryEdge = true;
+        for (int j = 0; j < edges.size(); j++){
+            bool sharedEdge = (std::get<0>(edges[i]) == std::get<0>(edges[j]) && std::get<1>(edges[i]) == std::get<1>(edges[j]))
+                || (std::get<0>(edges[i]) == std::get<1>(edges[j]) && std::get<1>(edges[i]) == std::get<0>(edges[j]));
+
+            if (i != j && sharedEdge){
+                isBoundaryEdge = false;
+                break;
+            }
+        }
+
+        if (isBoundaryEdge){
+            nodes[std::get<0>(edges[i])].boundaryNode = true;
+            nodes[std::get<1>(edges[i])].boundaryNode = true;
+        }
     }
 
     voronoiTessellation();
@@ -112,7 +161,7 @@ void StreamGraph::voronoiTessellation(){
 
     for (Triangle tri : triangles){
         Vector circumcentre = circumcentreOfTriangle(nodes[tri.v0].position, nodes[tri.v1].position, nodes[tri.v2].position);
-        int vertexIndicies[3] = {tri.v0, tri.v1, tri.v2};
+        unsigned int vertexIndicies[3] = {tri.v0, tri.v1, tri.v2};
         for (int j = 0; j < 3; j++){
             StreamNode *node = &nodes[vertexIndicies[j]];
             for (int k = 0; k < 3; k++){
@@ -132,4 +181,142 @@ void StreamGraph::voronoiTessellation(){
         std::cout << node.voronoiArea << "\n";
     }
     std::cout << "Total:" << sum << "\n";
+}
+
+void StreamGraph::createStreamTrees(){
+    for (int i = 0; i < nodes.size(); i++){
+        StreamNode *node = &(nodes[i]);
+        node->downstreamNode = 0;
+        node->upstreamNodes.clear();
+    }
+
+    for (int i = 0; i < nodes.size(); i++){
+        StreamNode *node = &(nodes[i]);
+        StreamNode *lowest = 0;
+        float lowestHeight = node->height;
+        for (Node *n : node->neighbours){
+            StreamNode *neighbour = (StreamNode*)n;
+            if (neighbour->height < lowestHeight){
+                lowestHeight = neighbour->height;
+                lowest = neighbour;
+            }
+        }
+
+        if (lowest != 0){
+            node->downstreamNode = lowest;
+            lowest->upstreamNodes.push_back(node);
+        }
+    }
+}
+
+void StreamGraph::updateNode(StreamNode *node, float dt){
+    if (node->downstreamNode != 0){
+        float horizontalDistance = (node->position - node->downstreamNode->position).length();
+        float newHeight = (node->height + dt * (node->uplift + erosionConstant * pow(node->drainageArea, m) * node->downstreamNode->height / horizontalDistance)) /
+                        (1 + erosionConstant * pow(node->drainageArea, m) * dt / horizontalDistance);
+
+        node->height = newHeight;
+    }
+
+    for (StreamNode *upstreamNode : node->upstreamNodes){
+        updateNode(upstreamNode, dt);
+    }
+}   
+
+void StreamGraph::update(){
+    // Create stream trees
+    createStreamTrees();
+
+    // For each root, calculate drainage areas.
+    for (int i = 0; i < nodes.size(); i++){
+        if (nodes[i].downstreamNode == 0){
+            // Root
+            // Calculate drainage areas and assign to lake
+            LakeNode *lakeNode = new LakeNode(&nodes[i], nodes[i].boundaryNode);
+            nodes[i].calculateDrainageArea(lakeNode);
+            lakeGraph.push_back(lakeNode);
+        }
+    }
+    
+    // Calculate passes
+    calculatePasses();
+
+    // For each tree from root to leaf
+    // Update node
+    for (StreamNode node : nodes){
+        if (node.downstreamNode == 0){
+            // Root
+            updateNode(&node, 0.1);
+        }
+    }
+}
+
+void StreamGraph::calculatePasses(){
+    for (int i = 0; i < edges.size(); i++){
+        StreamNode *node1 = &(nodes[std::get<0>(edges[i])]);
+        StreamNode *node2 = &(nodes[std::get<1>(edges[i])]);
+        if (node1->lakeNode != node2->lakeNode){
+            bool isPass = true;
+            for (int l = 0; l < node1->lakeNode->upstreamNodes.size(); l++){
+                for (int k = 0; k < node2->lakeNode->upstreamNodes.size(); k++){
+                    if (std::max(node1->height, node2->height) > std::max(node1->lakeNode->upstreamNodes[l]->height, node2->lakeNode->upstreamNodes[k]->height)){
+                        isPass = false;
+                        goto endLoop;
+                    }
+                }
+            }
+            endLoop:
+            if (isPass){
+                node1->lakeNode->addEdge(node2->lakeNode);
+                node2->lakeNode->addEdge(node1->lakeNode);
+
+                float passHeight = std::max(node1->height, node2->height);
+                node1->lakeNode->passes.push_back(std::make_tuple(node1, node2, passHeight));
+                node2->lakeNode->passes.push_back(std::make_tuple(node2, node1, passHeight));
+            }
+        }
+    }
+
+    // Compute lake trees
+    std::vector<std::tuple<LakeNode*, LakeNode*, float>> candidates;
+
+    // Remove connections aways from river mouth
+    for (int i = 0; i < lakeGraph.size(); i++){
+        if (lakeGraph[i]->isRiverMouth){
+            for (int j = 0; j < lakeGraph[i]->neighbours.size(); j++){
+                candidates.push_back(std::make_tuple((LakeNode*)(lakeGraph[i]->neighbours[j]), lakeGraph[i], std::get<2>((lakeGraph[i]->passes[j]))));
+                lakeGraph[i]->neighbours.clear();
+            }
+        }
+    }
+
+    while (candidates.size() > 0){
+        float minPassHeight = 100000000;
+        int minHeightPass;
+        for (int i = 0; i < candidates.size(); i++){
+            if (std::get<2>(candidates[i]) < minPassHeight){
+                minPassHeight = std::get<2>(candidates[i]);
+                minHeightPass = i;
+            }
+        }
+
+        LakeNode *chosenLake = std::get<1>(candidates[minHeightPass]);
+        chosenLake->upstreamLakes.push_back(std::get<0>(candidates[minHeightPass]));
+
+        for (int j = 0; j < chosenLake->neighbours.size(); j++){
+            candidates.push_back(std::make_tuple((LakeNode*)(chosenLake->neighbours[j]), chosenLake, std::get<2>(chosenLake->passes[j])));
+            chosenLake->neighbours.clear();
+        }
+
+        candidates.erase(candidates.begin() + minHeightPass);
+    }
+
+    // Update stream graph
+    for (int j = 0; j < lakeGraph.size(); j++){
+        LakeNode *lake = lakeGraph[j];
+        for (int i = 0; i < lake->passes.size(); i++){
+            std::get<0>(lake->passes[i])->upstreamNodes.push_back(std::get<1>(lake->passes[i]));
+            std::get<1>(lake->passes[i])->downstreamNode = std::get<0>(lake->passes[i]);
+        }
+    }
 }

@@ -16,7 +16,7 @@ int main(){
     srand(time(NULL));
     loadNoisePermutation((char*)"perlin_data.txt");
 
-    const int n = 5;
+    const int n = 7;
     const int size = pow(2, n) + 1;
 
     // // Procedural
@@ -29,8 +29,13 @@ int main(){
     //Mesh *mesh = createMeshFromHeightfield(heightfield, size);
 
     // Erosion
-    StreamGraph sg = StreamGraph(100, heightfield, size);
+    StreamGraph sg = StreamGraph(200, heightfield, size);
     sg.initialise();
+
+    for (int i = 0; i < 200; i++){
+        sg.update();
+    }
+
     Mesh *mesh = sg.createMesh();
 
     // Output heightfield as image
