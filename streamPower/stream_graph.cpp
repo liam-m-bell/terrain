@@ -64,11 +64,11 @@ void StreamGraph::initialise(){
     }
 
     for (Vector v : points){
-        float upl = 0.1f;//(float)rand() / ((float)RAND_MAX + 1) * 0.005f;//warpedNoise(Vector(5.2f, 1.3f), 0.0f, Vector(v.x / (float)terrainSize, v.y / (float)terrainSize), 5, 2.0f, 0.5f, 40.0f);
-        //float height = (float)rand() / ((float)RAND_MAX + 1) * 0.02f;
-        float height = (Vector((float)terrainSize / 2, (float)terrainSize / 2) - v).length() * -0.1;
-        nodes.push_back(StreamNode(v.x, v.y, 0.0f, upl));
-        std::cout << v.x << "," << v.y << "\n";
+        float upl = (5.0f * pow(10.0f, -4));
+        float height = fabs(warpedNoise(Vector(5.2f, 1.3f), 0.0f, Vector(v.x / (float)terrainSize, v.y / (float)terrainSize), 5, 2.0f, 0.5f, 40.0f));
+        //float height = (Vector((float)terrainSize / 2, (float)terrainSize / 2) - v).length() * -0.1;
+        nodes.push_back(StreamNode(v.x, v.y, height, upl));
+        std::cout << height << "\n";
     }
 
     CDT::Triangulation<float> cdt;
@@ -80,8 +80,6 @@ void StreamGraph::initialise(){
     );
 
     cdt.eraseSuperTriangle();
-
-    
 
     for (auto tri : cdt.triangles){
         Vector centre = circumcentreOfTriangle(nodes[tri.vertices[0]].position, nodes[tri.vertices[1]].position, nodes[tri.vertices[2]].position);
@@ -108,7 +106,12 @@ void StreamGraph::initialise(){
     }
 
     // Get boundary nodes
+    float radiusSquare = (terrainSize / 2) - (5 * kRadius);
     for (int i = 0; i < edges.size(); i++){
+        if (fabs(nodes[std::get<0>(edges[i])].position.x) < radiusSquare && fabs(nodes[std::get<0>(edges[i])].position.y) < radiusSquare){
+            continue;
+        }
+
         bool isBoundaryEdge = true;
         for (int j = 0; j < edges.size(); j++){
             bool sharedEdge = (std::get<0>(edges[i]) == std::get<0>(edges[j]) && std::get<1>(edges[i]) == std::get<1>(edges[j]))
@@ -123,6 +126,8 @@ void StreamGraph::initialise(){
         if (isBoundaryEdge){
             nodes[std::get<0>(edges[i])].boundaryNode = true;
             nodes[std::get<1>(edges[i])].boundaryNode = true;
+            nodes[std::get<0>(edges[i])].height = 0.0f;
+            nodes[std::get<1>(edges[i])].height = 0.0f;
         }
     }
 
@@ -218,8 +223,8 @@ void StreamGraph::updateNode(StreamNode *node, float dt){
         node->height = newHeight;
     }
 
-    for (StreamNode *upstreamNode : node->upstreamNodes){
-        updateNode(upstreamNode, dt);
+    for (int i = 0; i < node->upstreamNodes.size(); i++){
+        updateNode(node->upstreamNodes[i], dt);
     }
 }   
 
@@ -227,13 +232,13 @@ void StreamGraph::update(){
     // Create stream trees
     createStreamTrees();
 
-    // For each root, calculate drainage areas.
+    // For each root, assign lakes
     for (int i = 0; i < nodes.size(); i++){
         if (nodes[i].downstreamNode == 0){
             // Root
-            // Calculate drainage areas and assign to lake
+            // Assign to lake
             LakeNode *lakeNode = new LakeNode(&nodes[i], nodes[i].boundaryNode);
-            nodes[i].calculateDrainageArea(lakeNode);
+            nodes[i].addToLake(lakeNode);
             lakeGraph.push_back(lakeNode);
         }
     }
@@ -241,17 +246,39 @@ void StreamGraph::update(){
     // Calculate passes
     calculatePasses();
 
+    // For each root, calculate drainage areas.
+    for (int i = 0; i < nodes.size(); i++){
+        if (nodes[i].boundaryNode){
+            // Root
+            // Calculate drainage area
+            nodes[i].calculateDrainageArea();
+        }
+    }
+
     // For each tree from root to leaf
     // Update node
-    for (StreamNode node : nodes){
-        if (node.downstreamNode == 0){
+    for (int i = 0; i < nodes.size(); i++){
+        if (nodes[i].boundaryNode){
             // Root
-            updateNode(&node, 0.1);
+            updateNode(&nodes[i], timeStep);
         }
     }
 }
 
+bool areNeighbours(Node *a, Node *b){
+     for (int i = 0; i < a->neighbours.size(); i++){
+        if (a->neighbours[i] == b){
+            return true;
+        }
+    }
+    return false;
+}
+
 void StreamGraph::calculatePasses(){
+    std::vector<LakeEdge> passes;
+    std::vector<LakeEdge*> validPasses;
+
+    int passCount = 0;
     for (int i = 0; i < edges.size(); i++){
         StreamNode *node1 = &(nodes[std::get<0>(edges[i])]);
         StreamNode *node2 = &(nodes[std::get<1>(edges[i])]);
@@ -259,9 +286,11 @@ void StreamGraph::calculatePasses(){
             bool isPass = true;
             for (int l = 0; l < node1->lakeNode->upstreamNodes.size(); l++){
                 for (int k = 0; k < node2->lakeNode->upstreamNodes.size(); k++){
-                    if (std::max(node1->height, node2->height) > std::max(node1->lakeNode->upstreamNodes[l]->height, node2->lakeNode->upstreamNodes[k]->height)){
-                        isPass = false;
-                        goto endLoop;
+                    if (areNeighbours(node1->lakeNode->upstreamNodes[l], node2->lakeNode->upstreamNodes[k])){
+                        if (std::max(node1->height, node2->height) > std::max(node1->lakeNode->upstreamNodes[l]->height, node2->lakeNode->upstreamNodes[k]->height)){
+                            isPass = false;
+                            goto endLoop;
+                        }
                     }
                 }
             }
@@ -271,52 +300,122 @@ void StreamGraph::calculatePasses(){
                 node2->lakeNode->addEdge(node1->lakeNode);
 
                 float passHeight = std::max(node1->height, node2->height);
-                node1->lakeNode->passes.push_back(std::make_tuple(node1, node2, passHeight));
-                node2->lakeNode->passes.push_back(std::make_tuple(node2, node1, passHeight));
+                passes.push_back(LakeEdge(node1, node2, passHeight));
+
+                //->lakeNode->passes.push_back(&passes[passCount]);
+                //node2->lakeNode->passes.push_back(&passes[passCount]);
+                //passCount++;
             }
         }
     }
 
     // Compute lake trees
-    std::vector<std::tuple<LakeNode*, LakeNode*, float>> candidates;
+    //std::vector<std::tuple<LakeNode*, LakeNode*, float, int>> candidates;
+    std::vector<LakeEdge*> candidates;
 
     // Remove connections aways from river mouth
     for (int i = 0; i < lakeGraph.size(); i++){
         if (lakeGraph[i]->isRiverMouth){
             for (int j = 0; j < lakeGraph[i]->neighbours.size(); j++){
-                candidates.push_back(std::make_tuple((LakeNode*)(lakeGraph[i]->neighbours[j]), lakeGraph[i], std::get<2>((lakeGraph[i]->passes[j]))));
-                lakeGraph[i]->neighbours.clear();
+                if (!((LakeNode*)(lakeGraph[i]->neighbours[j]))->isRiverMouth){
+                    //std::tuple<LakeNode*, LakeNode*, float, int> candidate = std::make_tuple((LakeNode*)(lakeGraph[i]->neighbours[j]), lakeGraph[i], std::get<2>((lakeGraph[i]->passes[j])), j);
+                    
+                    for (int p = 0; p < passes.size(); p++){
+                        if (passes[p].lake1 == lakeGraph[i] && passes[p].lake2 == lakeGraph[i]->neighbours[j]){
+                            passes[p].direction = twoToOne;
+                            candidates.push_back(&passes[p]);
+
+                        }
+                        else if (passes[p].lake2 == lakeGraph[i] && passes[p].lake1 == lakeGraph[i]->neighbours[j]){
+                            passes[p].direction = oneToTwo;
+                            candidates.push_back(&passes[p]);
+                        }
+                    }
+                } 
             }
+            lakeGraph[i]->neighbours.clear();
         }
     }
 
     while (candidates.size() > 0){
-        float minPassHeight = 100000000;
+        float minPassHeight = 1000000000;
         int minHeightPass;
         for (int i = 0; i < candidates.size(); i++){
-            if (std::get<2>(candidates[i]) < minPassHeight){
-                minPassHeight = std::get<2>(candidates[i]);
+            if (candidates[i]->passHeight < minPassHeight){
+                minPassHeight = candidates[i]->passHeight;
                 minHeightPass = i;
             }
         }
 
-        LakeNode *chosenLake = std::get<1>(candidates[minHeightPass]);
-        chosenLake->upstreamLakes.push_back(std::get<0>(candidates[minHeightPass]));
+        LakeNode *lowerLake = candidates[minHeightPass]->lowerLake();
+        LakeNode *upperLake = candidates[minHeightPass]->higherLake();
 
-        for (int j = 0; j < chosenLake->neighbours.size(); j++){
-            candidates.push_back(std::make_tuple((LakeNode*)(chosenLake->neighbours[j]), chosenLake, std::get<2>(chosenLake->passes[j])));
-            chosenLake->neighbours.clear();
+        validPasses.push_back(candidates[minHeightPass]);
+
+        //lowerLake->upstreamLakes.push_back(std::make_tuple(std::get<0>(candidates[minHeightPass]), std::get<3>(candidates[minHeightPass])));
+
+        // for (int j = 0; j < upperLake->neighbours.size(); j++){
+        //     candidates.push_back(std::make_tuple((LakeNode*)(upperLake->neighbours[j]), upperLake, std::get<2>(upperLake->passes[j]), j));
+        //     upperLake->neighbours.clear();
+        // }
+
+        for (int j = 0; j < upperLake->neighbours.size(); j++){
+            if (!lakeGraph[j]->isRiverMouth){
+                //std::tuple<LakeNode*, LakeNode*, float, int> candidate = std::make_tuple((LakeNode*)(lakeGraph[i]->neighbours[j]), lakeGraph[i], std::get<2>((lakeGraph[i]->passes[j])), j);
+                
+                for (int p = 0; p < passes.size(); p++){
+                    if (passes[p].lake1 == lowerLake && passes[p].lake2 == upperLake){
+                        passes[p].direction = twoToOne;
+                        candidates.push_back(&passes[p]);
+
+                    }
+                    else if (passes[p].lake2 == lowerLake && passes[p].lake1 == upperLake){
+                        passes[p].direction = oneToTwo;
+                        candidates.push_back(&passes[p]);
+                    }
+                }
+            }
         }
-
+        
+        upperLake->neighbours.clear();
         candidates.erase(candidates.begin() + minHeightPass);
     }
 
-    // Update stream graph
-    for (int j = 0; j < lakeGraph.size(); j++){
-        LakeNode *lake = lakeGraph[j];
-        for (int i = 0; i < lake->passes.size(); i++){
-            std::get<0>(lake->passes[i])->upstreamNodes.push_back(std::get<1>(lake->passes[i]));
-            std::get<1>(lake->passes[i])->downstreamNode = std::get<0>(lake->passes[i]);
-        }
+    for (int p = 0; p < validPasses.size(); p++){
+        StreamNode *upperLakeRoot = validPasses[p]->higherLake()->streamNode;
+        StreamNode *receiverNode = validPasses[p]->lowerPass();
+
+        receiverNode->upstreamNodes.push_back(upperLakeRoot);
+        upperLakeRoot->downstreamNode = receiverNode;
     }
+
+    // // Update stream graph
+    // for (int i = 0; i < lakeGraph.size(); i++){
+    //     if (lakeGraph[i]->isRiverMouth){
+    //         updateFromLakes(lakeGraph[i]);
+    //     }
+    // }
 }
+
+// void StreamGraph::updateFromLakes(LakeNode *lake){
+//     for (int i = 0; i < lake->upstreamLakes.size(); i++){
+//         // For each upstream lake connect a streamedge from upstream lake root to pass node of lower lake
+//         LakeNode *upstreamLake = std::get<0>(lake->upstreamLakes[i]);
+//         std::tuple<StreamNode*,StreamNode*,float> pass = upstreamLake->passes[std::get<1>(lake->upstreamLakes[i])];
+
+//         StreamNode *passNode;
+//         if (std::get<0>(pass)->lakeNode == lake){
+//             passNode = std::get<0>(pass);
+//         }
+//         else if(std::get<0>(pass)->lakeNode == upstreamLake){
+//             passNode = std::get<1>(pass);
+//         }
+//         else{
+//             std::cout << "error";
+//         }
+
+//         passNode->upstreamNodes.push_back(upstreamLake->streamNode);
+
+//         updateFromLakes(upstreamLake);
+//     }
+// }

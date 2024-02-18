@@ -12,7 +12,8 @@ public:
     int terrainSize;
 
     float m = 0.5f;
-    float erosionConstant = 0.05;
+    float erosionConstant = 5.61 * pow(10.0f, -7);
+    float timeStep = 2.5 * pow(10.0f, 5);
 
     std::vector<StreamNode> nodes;
     std::vector<Triangle> triangles;

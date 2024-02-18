@@ -30,7 +30,8 @@ public:
         
 	}
 
-    float calculateDrainageArea(LakeNode *lakeNod);
+    float calculateDrainageArea();
+    void addToLake(LakeNode *lakeNode);
 };
 
 #endif

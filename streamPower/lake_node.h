@@ -5,18 +5,22 @@
 #include <tuple>
 
 #include "stream_node.h"
+#include "lake_edge.h"
 
 class StreamNode;
+
+class LakeEdge;
 
 class LakeNode : public Node{
 public:
     StreamNode *streamNode;
     bool isRiverMouth = false;
 
-    std::vector<std::tuple<StreamNode*, StreamNode*, float>> passes;
+    //std::vector<std::tuple<StreamNode*, StreamNode*, float>> passes;
+    std::vector<LakeEdge*> passes;
 
     std::vector<StreamNode*> upstreamNodes;
-    std::vector<LakeNode*> upstreamLakes;
+    std::vector<std::tuple<LakeNode*, int>> upstreamLakes; //with pass number
 
     LakeNode()
 	{
