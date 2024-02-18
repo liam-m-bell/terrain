@@ -30,7 +30,7 @@ int main(){
     //Mesh *mesh = createMeshFromHeightfield(heightfield, size);
 
     // Erosion
-    StreamGraph sg = StreamGraph(10000, heightfield, size);
+    StreamGraph sg = StreamGraph(2000, heightfield, size);
     sg.initialise();
 
     for (int i = 0; i < 60; i++){

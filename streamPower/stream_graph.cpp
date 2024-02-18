@@ -272,6 +272,13 @@ void StreamGraph::update(){
             updateNode(&nodes[i], timeStep);
         }
     }
+
+    //Free lakes
+    for (int i = 0; i < lakeGraph.size(); i++){
+        delete lakeGraph[i];
+    }
+
+    lakeGraph.clear();
 }
 
 bool areNeighbours(Node *a, Node *b){
