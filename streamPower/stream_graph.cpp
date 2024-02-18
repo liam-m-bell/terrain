@@ -106,11 +106,11 @@ void StreamGraph::initialise(){
     }
 
     // Get boundary nodes
-    float radiusSquare = (terrainSize / 2) - (5 * kRadius);
+    float radiusSquare = (terrainSize / 2) - (6 * kRadius);
     for (int i = 0; i < edges.size(); i++){
-        if (fabs(nodes[std::get<0>(edges[i])].position.x) < radiusSquare && fabs(nodes[std::get<0>(edges[i])].position.y) < radiusSquare){
-            continue;
-        }
+        // if (fabs(nodes[std::get<0>(edges[i])].position.x) < radiusSquare && fabs(nodes[std::get<0>(edges[i])].position.y) < radiusSquare){
+        //     continue;
+        // }
 
         bool isBoundaryEdge = true;
         for (int j = 0; j < edges.size(); j++){
@@ -221,6 +221,15 @@ void StreamGraph::updateNode(StreamNode *node, float dt){
                         (1 + erosionConstant * pow(node->drainageArea, m) * dt / horizontalDistance);
 
         node->height = newHeight;
+
+        float maxSlope = tan(0.5);
+        float slope = (node->height - node->downstreamNode->height) / horizontalDistance;
+        if (slope > maxSlope){
+            node->height = node->downstreamNode->height + horizontalDistance * maxSlope;
+        }
+        else if (slope < (-1.0f * maxSlope)){
+            node->height = node->downstreamNode->height - horizontalDistance * maxSlope;
+        }
     }
 
     for (int i = 0; i < node->upstreamNodes.size(); i++){
