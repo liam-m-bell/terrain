@@ -1,9 +1,15 @@
+#ifndef STREAM_GRAPH_H_
+#define STREAM_GRAPH_H_
+
 #include "stream_node.h"
-#include "graph/edge.h"
 #include <vector>
 #include <tuple>
 
 #include "../core/mesh.h"
+
+float getInitalUplift(float x, float y);
+Vector circumcentreOfTriangle(Vector a, Vector b, Vector c);
+float areaOfTriangle(Vector a, Vector b, Vector c);
 
 class StreamGraph{
 public:
@@ -34,10 +40,10 @@ public:
     void initialise();
     Mesh *createMesh();
     void voronoiTessellation();
-    void calculateBoundary();
     void createStreamTrees();
     void update();
     void updateNode(StreamNode *node, float dt);
     void calculatePasses();
-    void updateFromLakes(LakeNode *lake);
 };
+
+#endif

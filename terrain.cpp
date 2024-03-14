@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
+#include <iostream>
 
 #include "core/heightfield.h"
 #include "core/mesh.h"
@@ -30,10 +31,12 @@ int main(){
     //Mesh *mesh = createMeshFromHeightfield(heightfield, size);
 
     // Erosion
-    StreamGraph sg = StreamGraph(2000, heightfield, size);
+    StreamGraph sg = StreamGraph(5000, heightfield, size);
     sg.initialise();
 
-    for (int i = 0; i < 60; i++){
+    std::cout << "Initialised";
+
+    for (int i = 0; i < 100; i++){
         sg.update();
     }
 

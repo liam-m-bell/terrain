@@ -1,6 +1,4 @@
-
 #include "lake_edge.h"
-
 
 LakeEdge::LakeEdge(StreamNode *n1, StreamNode *n2, float height){
     passNode1 = n1;
@@ -10,6 +8,7 @@ LakeEdge::LakeEdge(StreamNode *n1, StreamNode *n2, float height){
     lake2 = passNode2->lakeNode;
 }
 
+// Gets lake edges lower elevation neighbour
 LakeNode* LakeEdge::lowerLake(){
     if (direction == oneToTwo){
         return lake2;
@@ -22,6 +21,7 @@ LakeNode* LakeEdge::lowerLake(){
     }
 }
 
+// Gets lake edges lower elevation neighbour
 LakeNode* LakeEdge::higherLake(){
     if (direction == oneToTwo){
         return lake1;
@@ -34,6 +34,7 @@ LakeNode* LakeEdge::higherLake(){
     }
 }
 
+// Gets lake edges lower elevation stream node of the pass
 StreamNode* LakeEdge::lowerPass(){
     if (direction == oneToTwo){
         return passNode2;

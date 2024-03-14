@@ -13,6 +13,7 @@ public:
 
     void addEdge(Node *node);
     void removeEdge(Node *node);
+    bool isNeighbour(Node *a);
 };
 
 #endif

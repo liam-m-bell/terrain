@@ -16,7 +16,6 @@ public:
     StreamNode *streamNode;
     bool isRiverMouth = false;
 
-    //std::vector<std::tuple<StreamNode*, StreamNode*, float>> passes;
     std::vector<LakeEdge*> passes;
 
     std::vector<StreamNode*> upstreamNodes;
