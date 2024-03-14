@@ -31,7 +31,7 @@ int main(){
     //Mesh *mesh = createMeshFromHeightfield(heightfield, size);
 
     // Erosion
-    StreamGraph sg = StreamGraph(5000, heightfield, size);
+    StreamGraph sg = StreamGraph(2000, heightfield, size);
     sg.initialise();
 
     std::cout << "Initialised";

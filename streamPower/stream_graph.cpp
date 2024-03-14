@@ -21,18 +21,9 @@ Vector circumcentreOfTriangle(Vector a, Vector b, Vector c){
 }
 
 void StreamGraph::initialise(){
-    // Input parameters.
-    auto kRadius = (float)terrainSize / sqrt((float)nodeCount);
-    auto kXMin = std::array<float, 2>{{0.0f, 0.0f}};
-    auto kXMax = std::array<float, 2>{{(float)terrainSize, (float)terrainSize}};
-
-    // Samples returned as std::vector<std::array<float, 2>>.
-    // Default seed and max sample attempts.
-    std::vector<Vector> points;
-
-    for (auto p : thinks::PoissonDiskSampling(kRadius, kXMin, kXMax)){
-        points.push_back(Vector(p[0], p[1]));
-    }
+    // Sample points for stream nodes using poisson disk samping
+    float radius = (float)terrainSize / sqrt((float)nodeCount);
+    std::vector<Vector> points = poissonDiskSampling(radius, Vector(terrainSize, terrainSize));
 
     for (Vector v : points){
         float upl = (5.0f * pow(10.0f, -4));
@@ -78,7 +69,7 @@ void StreamGraph::initialise(){
     }
 
     // Label boundary nodes (SLOW)
-    float radiusSquare = (terrainSize / 2) - (6 * kRadius);
+    float radiusSquare = (terrainSize / 2) - (6 * radius);
     for (int i = 0; i < edges.size(); i++){
         // if (fabs(nodes[std::get<0>(edges[i])].position.x) < radiusSquare && fabs(nodes[std::get<0>(edges[i])].position.y) < radiusSquare){
         //     continue;
