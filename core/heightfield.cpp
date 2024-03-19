@@ -1,5 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <iostream>
+#include <fstream>
+#include <sstream>
 
 // Allocates memory for a heightfield
 float **createHeightfield(const int size){
@@ -36,4 +39,58 @@ void outputHeightfieldAsImage(float **a, const int size, const float maxHeight, 
     }
 
     fclose(imageFile);
+}
+
+int importImageAsHeightfield(char *filename, float ***a, const float maxHeight){
+    int size = 0;
+    std::ifstream imageFile(filename);
+    
+    std::string lineString;
+
+    std::getline(imageFile, lineString);
+    if (lineString != "P6"){ 
+        return 0;
+    }
+
+    std::getline(imageFile, lineString);
+    while (lineString[0] == '#') {
+        std::getline(imageFile, lineString);
+    }
+
+    std::istringstream dimensions(lineString);
+
+    int width, height;
+    
+    dimensions >> width;
+    dimensions >> height;
+
+    if (width != height){
+        return 0;
+    }
+
+    size = width;
+    float **heightfield = createHeightfield(size);
+
+    std::getline(imageFile, lineString);
+    std::istringstream maxValueString(lineString);
+    float maxImageValue;
+    maxValueString >> maxImageValue;
+
+    char imageChar;
+    for (int i = 0; i < size * size; i++) {
+        imageFile.read(&imageChar, 1);
+        unsigned char uImageChar = (unsigned char)imageChar;
+        float value = (float)uImageChar * maxHeight / maxImageValue;
+        heightfield[i / size][i % size] = value;
+        std::cout << imageChar << " ";
+        std::cout << i / size << " ";
+        std::cout << i % size << "\n";
+        imageFile.read(&imageChar, 2);
+        //std::cout << imageChar << "\n";
+    }
+
+    imageFile.close();
+
+    *a = heightfield;
+    return size;
 }

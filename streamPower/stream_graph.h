@@ -38,12 +38,14 @@ public:
     }
     
     void initialise();
-    Mesh *createMesh();
     void voronoiTessellation();
     void createStreamTrees();
     void update();
     void updateNode(StreamNode *node, float dt);
     void calculatePasses();
+
+    Mesh *createMesh();
+    float **createHightfield(float precision);
 };
 
 #endif

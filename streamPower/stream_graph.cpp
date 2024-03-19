@@ -5,6 +5,11 @@
 #include <iostream>
 
 #include "../core/noise.h"
+#include "../core/heightfield.h"
+
+float rrandRange(float min, float max){
+    return min + (max - min) * ((float)rand() / RAND_MAX);
+}
 
 float getInitalUplift(float x, float y){
     return 1.0f;
@@ -26,7 +31,7 @@ void StreamGraph::initialise(){
     std::vector<Vector> points = poissonDiskSampling(radius, Vector(terrainSize, terrainSize));
 
     for (Vector v : points){
-        float upl = (5.0f * pow(10.0f, -4));
+        float upl = (5.0f * pow(10.0f, -4)) * rrandRange(0, 1);
         float height = fabs(warpedNoise(Vector(5.2f, 1.3f), 0.0f, Vector(v.x / (float)terrainSize, v.y / (float)terrainSize), 5, 2.0f, 0.5f, 40.0f));
         //float height = (Vector((float)terrainSize / 2, (float)terrainSize / 2) - v).length() * -0.1;
         nodes.push_back(StreamNode(v.x, v.y, height, upl));
@@ -369,3 +374,15 @@ Mesh* StreamGraph::createMesh(){
 
     return mesh;
 }
+
+// float** StreamGraph::createHightfield(float precision){
+//     float **heightfield = createHeightfield(terrainSize / precision);
+
+//     for (int i = 0; i < nodes.size(); i++){
+//         int iX = (int)(nodes[i].position.x / precision);
+//         int iZ = (int)(nodes[i].position.y / precision);
+//         heightfield[iZ][iX] = nodes[i].height;
+//     }
+
+//     // Interpolate values
+// }
