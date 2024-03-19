@@ -13,9 +13,11 @@ float areaOfTriangle(Vector a, Vector b, Vector c);
 
 class StreamGraph{
 public:
-    int nodeCount;
-    float **upliftMap;
     int terrainSize;
+    int nodeCount;
+
+    float **upliftField;
+    int upliftFieldSize;
 
     float m = 0.5f;
     float erosionConstant = 5.61 * pow(10.0f, -7);
@@ -27,10 +29,11 @@ public:
 
     std::vector<LakeNode*> lakeGraph;
 
-    StreamGraph(int nodeCount, float **upliftMap, int terrainSize){
+    StreamGraph(int nodeCount, int terrainSize, float **upliftField, int upliftFieldSize){
         this->nodeCount = nodeCount;
-        this->upliftMap = upliftMap;
+        this->upliftField = upliftField;
         this->terrainSize = terrainSize;
+        this->upliftFieldSize =upliftFieldSize;
     }
 
     StreamGraph(){
@@ -38,6 +41,7 @@ public:
     }
     
     void initialise();
+    float getUplift(Vector p);
     void voronoiTessellation();
     void createStreamTrees();
     void update();

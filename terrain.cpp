@@ -18,36 +18,33 @@ int main(){
     loadNoisePermutation((char*)"perlin_data.txt");
 
     // // Create heightfield
+    const int n = 15;
+    const int size = pow(2, n) + 1;
+    float **heightfield = createHeightfield(size);
 
-    // const int n = 15;
-    // const int size = pow(2, n) + 1;
-    // float **heightfield = createHeightfield(size);
-
-    // // Erosion
-    // StreamGraph sg = StreamGraph(2000, heightfield, size);
-    // sg.initialise();
-
-    // std::cout << "Initialised";
-
-    // for (int i = 0; i < 100; i++){
-    //     sg.update();
-    // }
-
-    // Mesh *mesh = sg.createMesh();
-
-    // // Create mesh from heightfield and export mesh as OBJ file
-
-    // exportMeshAsObj(mesh, "model.obj");
-    // freeMesh(mesh);
-
-    float **heightfield;
+    // Import uplift
+    float **upliftField;
     float maxUplift = 5.0f * pow(10.0f, -4);
-    int size = importImageAsHeightfield((char*)"uplift.ppm", &heightfield, maxUplift);
+    int upliftFieldSize = importImageAsHeightfield((char*)"uplift.ppm", &upliftField, maxUplift);
 
-    if (size != 0){
-        outputHeightfieldAsImage(heightfield, size, maxUplift, (char*)"image.ppm");
-        freeHeightfield(heightfield, size);
+    // Erosion
+    StreamGraph sg = StreamGraph(10000, size, upliftField, upliftFieldSize);
+    sg.initialise();
+
+    std::cout << "Initialised";
+
+    for (int i = 0; i < 100; i++){
+        sg.update();
     }
+
+    Mesh *mesh = sg.createMesh();
+
+    // Create mesh from heightfield and export mesh as OBJ file
+
+    exportMeshAsObj(mesh, "model.obj");
+    freeMesh(mesh);
+
+    freeHeightfield(heightfield, size);
 
     return 0;
 }

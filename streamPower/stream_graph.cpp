@@ -11,10 +11,6 @@ float rrandRange(float min, float max){
     return min + (max - min) * ((float)rand() / RAND_MAX);
 }
 
-float getInitalUplift(float x, float y){
-    return 1.0f;
-}
-
 Vector circumcentreOfTriangle(Vector a, Vector b, Vector c){
     float t = a.len_sqr() - b.len_sqr();
     float u = a.len_sqr() - c.len_sqr();
@@ -25,16 +21,21 @@ Vector circumcentreOfTriangle(Vector a, Vector b, Vector c){
     return Vector(x, y);
 }
 
+float StreamGraph::getUplift(Vector p){
+    Vector upliftIndex = ((float)upliftFieldSize / (float)terrainSize) * p;
+    float uplift = upliftField[(int)upliftIndex.x][(int)(upliftIndex.y)];
+    return uplift;
+}
+
 void StreamGraph::initialise(){
     // Sample points for stream nodes using poisson disk samping
     float radius = (float)terrainSize / sqrt((float)nodeCount);
     std::vector<Vector> points = poissonDiskSampling(radius, Vector(terrainSize, terrainSize));
 
     for (Vector v : points){
-        float upl = (5.0f * pow(10.0f, -4)) * rrandRange(0, 1);
-        float height = fabs(warpedNoise(Vector(5.2f, 1.3f), 0.0f, Vector(v.x / (float)terrainSize, v.y / (float)terrainSize), 5, 2.0f, 0.5f, 40.0f));
-        //float height = (Vector((float)terrainSize / 2, (float)terrainSize / 2) - v).length() * -0.1;
-        nodes.push_back(StreamNode(v.x, v.y, height, upl));
+        float uplift = getUplift(v);
+        float height = 0.005f * fabs(warpedNoise(Vector(5.2f, 1.3f), 0.0f, Vector(v.x / (float)terrainSize, v.y / (float)terrainSize), 5, 2.0f, 0.5f, 40.0f));
+        nodes.push_back(StreamNode(v.x, v.y, height, uplift));
         std::cout << height << "\n";
     }
 

@@ -82,10 +82,10 @@ int importImageAsHeightfield(char *filename, float ***a, const float maxHeight){
         unsigned char uImageChar = (unsigned char)imageChar;
         float value = (float)uImageChar * maxHeight / maxImageValue;
         heightfield[i / size][i % size] = value;
-        std::cout << imageChar << " ";
-        std::cout << i / size << " ";
-        std::cout << i % size << "\n";
-        imageFile.read(&imageChar, 2);
+        // std::cout << imageChar << " ";
+        // std::cout << i / size << " ";
+        // std::cout << i % size << "\n";
+        // imageFile.read(&imageChar, 2);
         //std::cout << imageChar << "\n";
     }
 
