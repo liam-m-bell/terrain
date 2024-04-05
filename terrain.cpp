@@ -3,6 +3,7 @@
 #include <math.h>
 #include <time.h>
 #include <iostream>
+#include <chrono>
 
 #include "core/heightfield.h"
 #include "core/mesh.h"
@@ -17,34 +18,38 @@ int main(){
     srand(time(NULL));
     loadNoisePermutation((char*)"perlin_data.txt");
 
-    // // Create heightfield
     const int n = 15;
     const int size = pow(2, n) + 1;
-    float **heightfield = createHeightfield(size);
 
     // Import uplift
-    float **upliftField;
     float maxUplift = 5.0f * pow(10.0f, -4);
-    int upliftFieldSize = importImageAsHeightfield((char*)"uplift.ppm", &upliftField, maxUplift);
+    int upliftFieldSize;
+    float **upliftField = importImageAsHeightfield((char*)"uplift.ppm", &upliftFieldSize, maxUplift);
 
     // Erosion
-    StreamGraph sg = StreamGraph(10000, size, upliftField, upliftFieldSize);
+    StreamGraph sg = StreamGraph(4000, size, upliftField, upliftFieldSize);
     sg.initialise();
 
     std::cout << "Initialised";
+    std::cout.flush();
 
+    auto start = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < 100; i++){
-        sg.update();
+        bool converged = sg.update();
+        if (converged){
+            break;
+        }
     }
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+    std::cout << "Total" << (float)duration.count() / 1000000 << "\n";
 
+    // Create mesh from graph and export mesh as OBJ file
     Mesh *mesh = sg.createMesh();
-
-    // Create mesh from heightfield and export mesh as OBJ file
-
     exportMeshAsObj(mesh, "model.obj");
     freeMesh(mesh);
 
-    freeHeightfield(heightfield, size);
-
+    outputHeightfieldAsImage(upliftField, upliftFieldSize, maxUplift, (char*)"uplift-imported.ppm");
+    freeHeightfield(upliftField, upliftFieldSize);
     return 0;
 }

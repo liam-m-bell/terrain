@@ -41,14 +41,13 @@ void outputHeightfieldAsImage(float **a, const int size, const float maxHeight, 
     fclose(imageFile);
 }
 
-int importImageAsHeightfield(char *filename, float ***a, const float maxHeight){
-    int size = 0;
+float **importImageAsHeightfield(char *filename, int *terrainSize, const float maxHeight){
     std::ifstream imageFile(filename);
     
     std::string lineString;
 
     std::getline(imageFile, lineString);
-    if (lineString != "P6"){ 
+    if (lineString[0] != 'P'){ 
         return 0;
     }
 
@@ -68,7 +67,7 @@ int importImageAsHeightfield(char *filename, float ***a, const float maxHeight){
         return 0;
     }
 
-    size = width;
+    int size = width;
     float **heightfield = createHeightfield(size);
 
     std::getline(imageFile, lineString);
@@ -78,19 +77,18 @@ int importImageAsHeightfield(char *filename, float ***a, const float maxHeight){
 
     char imageChar;
     for (int i = 0; i < size * size; i++) {
-        imageFile.read(&imageChar, 1);
-        unsigned char uImageChar = (unsigned char)imageChar;
-        float value = (float)uImageChar * maxHeight / maxImageValue;
-        heightfield[i / size][i % size] = value;
-        // std::cout << imageChar << " ";
-        // std::cout << i / size << " ";
-        // std::cout << i % size << "\n";
-        // imageFile.read(&imageChar, 2);
-        //std::cout << imageChar << "\n";
+        std::getline(imageFile, lineString);
+        std::istringstream valueString(lineString);
+        float value;
+        valueString >> value;
+        float height = value * maxHeight / maxImageValue;
+        heightfield[i / size][i % size] = height;
+        std::getline(imageFile, lineString);
+        std::getline(imageFile, lineString);
     }
 
     imageFile.close();
 
-    *a = heightfield;
-    return size;
+    *terrainSize = size;
+    return heightfield;
 }

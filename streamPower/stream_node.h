@@ -7,6 +7,10 @@
 
 class StreamNode : public Node{
 public:
+    const float m = 0.5f;
+    const float erosionConstant = 5.61 * pow(10.0f, -7);
+    const float convergenceThreshold = 0.2;
+
     Vector position;
     float height;
     float uplift;
@@ -32,6 +36,7 @@ public:
 
     float calculateDrainageArea();
     void addToLake(LakeNode *lakeNode);
+    bool update(float dt);
 };
 
 #endif

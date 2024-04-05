@@ -8,6 +8,6 @@ float **createHeightfield(const int size);
 void freeHeightfield(float **a, const int size);
 
 void outputHeightfieldAsImage(float **a, const int size, const float maxHeight, char *filename);
-int importImageAsHeightfield(char *filename, float ***a, const float maxHeight);
+float **importImageAsHeightfield(char *filename, int *size, const float maxHeight);
 
 #endif

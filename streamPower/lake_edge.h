@@ -36,4 +36,11 @@ public:
     StreamNode *lowerPass();
 };
 
+class PassCompare{
+    public:
+        bool operator()(LakeEdge *a, LakeEdge *b){
+            return (a->passHeight <= b->passHeight);
+        }
+};
+
 #endif
