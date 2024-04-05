@@ -61,46 +61,37 @@ void StreamGraph::initialise(){
             continue;
         }
 
-        nodes[tri.vertices[0]].addEdge(&nodes[tri.vertices[1]]);
-        nodes[tri.vertices[0]].addEdge(&nodes[tri.vertices[2]]);
-        
         nodes[tri.vertices[1]].addEdge(&nodes[tri.vertices[0]]);
-        nodes[tri.vertices[1]].addEdge(&nodes[tri.vertices[2]]);
-
+        if (nodes[tri.vertices[0]].addEdge(&nodes[tri.vertices[1]])){
+            edges.push_back(std::make_tuple(tri.vertices[0], tri.vertices[1]));
+        }
+        
         nodes[tri.vertices[2]].addEdge(&nodes[tri.vertices[0]]);
+        if (nodes[tri.vertices[0]].addEdge(&nodes[tri.vertices[2]])){
+            edges.push_back(std::make_tuple(tri.vertices[2], tri.vertices[0]));
+        }
+        
         nodes[tri.vertices[2]].addEdge(&nodes[tri.vertices[1]]);
-
-        edges.push_back(std::make_tuple(tri.vertices[0], tri.vertices[1]));
-        edges.push_back(std::make_tuple(tri.vertices[1], tri.vertices[2]));
-        edges.push_back(std::make_tuple(tri.vertices[2], tri.vertices[0]));
+        if (nodes[tri.vertices[1]].addEdge(&nodes[tri.vertices[2]])){    
+            edges.push_back(std::make_tuple(tri.vertices[1], tri.vertices[2]));
+        }
 
         Triangle face = {(unsigned int)tri.vertices[0], (unsigned int)tri.vertices[1], (unsigned int)tri.vertices[2]};
         triangles.push_back(face);
     }
 
-    // Label boundary nodes (SLOW)
-    float radiusSquare = (terrainSize / 2) - (6 * radius);
-    for (int i = 0; i < edges.size(); i++){
-        // if (fabs(nodes[std::get<0>(edges[i])].position.x) < radiusSquare && fabs(nodes[std::get<0>(edges[i])].position.y) < radiusSquare){
-        //     continue;
-        // }
-
-        bool isBoundaryEdge = true;
-        for (int j = 0; j < edges.size(); j++){
-            bool sharedEdge = (std::get<0>(edges[i]) == std::get<0>(edges[j]) && std::get<1>(edges[i]) == std::get<1>(edges[j]))
-                || (std::get<0>(edges[i]) == std::get<1>(edges[j]) && std::get<1>(edges[i]) == std::get<0>(edges[j]));
-
-            if (i != j && sharedEdge){
-                isBoundaryEdge = false;
-                break;
-            }
+    for (int i = 0; i < nodes.size(); i++){
+        if (nodes[i].boundaryNode){
+            continue;
         }
-
-        if (isBoundaryEdge){
-            nodes[std::get<0>(edges[i])].boundaryNode = true;
-            nodes[std::get<1>(edges[i])].boundaryNode = true;
-            nodes[std::get<0>(edges[i])].height = 0.0f;
-            nodes[std::get<1>(edges[i])].height = 0.0f;
+        for (int j = 0; j < nodes[i].neighbours.size(); j++){
+            if (nodes[i].edgeShareCount[j] < 2){
+                nodes[i].boundaryNode = true;
+                nodes[i].height = 0.0f;
+                ((StreamNode*)nodes[i].neighbours[j])->boundaryNode = true;
+                ((StreamNode*)nodes[i].neighbours[j])->height = 0.0f;
+                continue;
+            } 
         }
     }
 
@@ -244,45 +235,6 @@ void StreamGraph::calculatePasses(){
             // Both nodes lead to same lake
             continue;
         }
-
-        // bool makePass = true;
-
-        // if (node1->lakeNode->isNeighbour(node2->lakeNode)){
-        //     // Lakes already have a connection between them
-        //     makePass = false;
-        //     float height = std::max(node1->height, node2->height);
-
-        //     LakeEdge *p;
-        //     if (node1->lakeNode < node2->lakeNode){
-        //         p = passMap[std::make_pair(node1->lakeNode, node2->lakeNode)];
-        //     }
-        //     else{
-        //         p = passMap[std::make_pair(node2->lakeNode, node1->lakeNode)];
-        //     }
-
-        //     if (height < p->passHeight){
-        //         p->passNode1 = node1;
-        //         p->passNode2 = node2;
-        //         p->passHeight = height;
-        //         p->lake1 = node1->lakeNode;
-        //         p->lake2 = node2->lakeNode;
-        //     }
-        // }
-
-        // if (makePass){
-        //     // Add connection in lake graph
-        //     node1->lakeNode->addEdge(node2->lakeNode);
-        //     node2->lakeNode->addEdge(node1->lakeNode);
-        //     float passHeight = std::max(node1->height, node2->height);
-        //     passes.push_back(LakeEdge(node1, node2, passHeight));
-
-        //     if (node1->lakeNode < node2->lakeNode){
-        //         passMap[std::make_pair(node1->lakeNode, node2->lakeNode)] = &(passes.back());
-        //     }
-        //     else{
-        //         passMap[std::make_pair(node2->lakeNode, node1->lakeNode)] = &(passes.back());
-        //     }
-        // }
 
         bool isPass = true;
         for (int j = 0; j < passes.size(); j++){

@@ -1,5 +1,17 @@
 #include "stream_node.h"
 
+bool StreamNode::addEdge(StreamNode *node){
+    for (int i = 0; i < neighbours.size(); i++){
+        if (neighbours[i] == node){
+            edgeShareCount[i]++;
+            return false;
+        }
+    }
+    neighbours.push_back(node);
+    edgeShareCount.push_back(1);
+    return true;
+}
+
 // Calculate drainage area of stream node recursively
 float StreamNode::calculateDrainageArea(){
     float area = voronoiArea;

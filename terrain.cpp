@@ -27,7 +27,7 @@ int main(){
     float **upliftField = importImageAsHeightfield((char*)"uplift.ppm", &upliftFieldSize, maxUplift);
 
     // Erosion
-    StreamGraph sg = StreamGraph(4000, size, upliftField, upliftFieldSize);
+    StreamGraph sg = StreamGraph(8000, size, upliftField, upliftFieldSize);
     sg.initialise();
 
     std::cout << "Initialised";

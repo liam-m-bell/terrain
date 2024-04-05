@@ -11,7 +11,7 @@ public:
         
 	}
 
-    void addEdge(Node *node);
+    bool addEdge(Node *node);
     void removeEdge(Node *node);
     bool isNeighbour(Node *a);
 };
