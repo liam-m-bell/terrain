@@ -47,7 +47,7 @@ public:
     void calculatePasses();
 
     Mesh *createMesh();
-    float **createHightfield(float precision);
+    float **createHightfield(float precision, float sigma, float *maxHeight);
 };
 
 #endif

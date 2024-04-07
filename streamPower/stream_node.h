@@ -8,8 +8,9 @@
 class StreamNode : public Node{
 public:
     const float m = 0.5f;
-    const float erosionConstant = 5.61 * pow(10.0f, -7);
+    const float erosionConstant = 5.0 * pow(10.0f, -7);
     const float convergenceThreshold = 0.2;
+    float talusAngle = 0.5;
 
     Vector position;
     float height;
@@ -26,10 +27,11 @@ public:
 
     LakeNode *lakeNode;
 
-    StreamNode(float x, float y, float height, float uplift){
+    StreamNode(float x, float y, float height, float uplift, float talusAngle){
         this->position = Vector(x, y);
         this->height = height;
         this->uplift = uplift;
+        this->talusAngle = talusAngle;
     }
 
     StreamNode()

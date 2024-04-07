@@ -46,3 +46,16 @@ StreamNode* LakeEdge::lowerPass(){
         return (StreamNode*)0;
     }
 }
+
+// Gets lake edges higher elevation stream node of the pass
+StreamNode* LakeEdge::higherPass(){
+    if (direction == oneToTwo){
+        return passNode1;
+    }
+    else if (direction == twoToOne){
+        return passNode2;
+    }
+    else{
+        return (StreamNode*)0;
+    }
+}

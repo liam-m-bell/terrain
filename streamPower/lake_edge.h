@@ -34,6 +34,7 @@ public:
     LakeNode *lowerLake();
     LakeNode *higherLake();
     StreamNode *lowerPass();
+    StreamNode *higherPass();
 };
 
 class PassCompare{

@@ -27,14 +27,15 @@ int main(){
     float **upliftField = importImageAsHeightfield((char*)"uplift.ppm", &upliftFieldSize, maxUplift);
 
     // Erosion
-    StreamGraph sg = StreamGraph(8000, size, upliftField, upliftFieldSize);
+    int nodeCount = 50000;
+    StreamGraph sg = StreamGraph(nodeCount, size, upliftField, upliftFieldSize);
     sg.initialise();
 
     std::cout << "Initialised";
     std::cout.flush();
 
     auto start = std::chrono::high_resolution_clock::now();
-    for (int i = 0; i < 100; i++){
+    for (int i = 0; i < 300; i++){
         bool converged = sg.update();
         if (converged){
             break;
@@ -45,11 +46,23 @@ int main(){
     std::cout << "Total" << (float)duration.count() / 1000000 << "\n";
 
     // Create mesh from graph and export mesh as OBJ file
-    Mesh *mesh = sg.createMesh();
-    exportMeshAsObj(mesh, "model.obj");
+    //Mesh *mesh = sg.createMesh();
+    //exportMeshAsObj(mesh, "model.obj");
+    //freeMesh(mesh);
+    
+    float resolution = 64;
+    float standardDev = 180 / resolution;
+
+    float maxHeight;
+    float **heightfield = sg.createHightfield(resolution, standardDev, &maxHeight);
+    Mesh *mesh = createMeshFromHeightfield(heightfield, size / resolution);
+    
+    exportMeshAsObj(mesh, (char*)"model.obj");
     freeMesh(mesh);
 
-    outputHeightfieldAsImage(upliftField, upliftFieldSize, maxUplift, (char*)"uplift-imported.ppm");
+    outputHeightfieldAsImage(heightfield, size / resolution, maxHeight, (char*)"image.ppm");
+    freeHeightfield(heightfield, size / resolution);
+
     freeHeightfield(upliftField, upliftFieldSize);
     return 0;
 }

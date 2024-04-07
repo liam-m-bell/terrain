@@ -8,7 +8,7 @@
 float **createHeightfield(const int size){
     float **a = (float**)malloc(size * sizeof(float*));
     for (int i = 0; i < size; i++){
-        a[i] = (float*)malloc(size * sizeof(float));
+        a[i] = (float*)calloc(size, sizeof(float));
     }
 
     return a;

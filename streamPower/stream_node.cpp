@@ -42,7 +42,7 @@ bool StreamNode::update(float dt){
                         (1 + erosionConstant * pow(drainageArea, m) * dt / horizontalDistance);
 
         // Thermal erosion
-        float maxSlope = tan(0.5);
+        float maxSlope = tan(talusAngle);
         float slope = (newHeight - downstreamNode->height) / horizontalDistance;
         if (slope > maxSlope){
             newHeight = downstreamNode->height + horizontalDistance * maxSlope;

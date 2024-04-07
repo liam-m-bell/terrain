@@ -30,17 +30,32 @@ float StreamGraph::getUplift(Vector p){
     Vector upliftIndex = ((float)upliftFieldSize / (float)terrainSize) * p;
     float uplift = upliftField[(int)upliftIndex.x][(int)(upliftIndex.y)];
     return uplift;
+    //return 5.5f * pow(10.0f, -4);
 }
 
 void StreamGraph::initialise(){
     // Sample points for stream nodes using poisson disk samping
-    float radius = (float)terrainSize / sqrt((float)nodeCount);
-    std::vector<Vector> points = poissonDiskSampling(radius, Vector(terrainSize, terrainSize));
+    // float radius = (float)terrainSize / sqrt((float)nodeCount);
+    // std::vector<Vector> points = poissonDiskSampling(radius, Vector(terrainSize, terrainSize));
+
+    // Input parameters.
+    auto kRadius = (float)terrainSize / sqrt((float)nodeCount);
+    auto kXMin = std::array<float, 2>{{0.0f, 0.0f}};
+    auto kXMax = std::array<float, 2>{{(float)terrainSize, (float)terrainSize}};
+
+    // Samples returned as std::vector<std::array<float, 2>>.
+    // Default seed and max sample attempts.
+    std::vector<Vector> points;
+
+    for (auto p : thinks::PoissonDiskSampling(kRadius, kXMin, kXMax)){
+        points.push_back(Vector(p[0], p[1]));
+    }
 
     for (Vector v : points){
         float uplift = getUplift(v);
         float height = 0.05f * fabs(warpedNoise(Vector(5.2f, 1.3f), 0.0f, Vector(v.x / (float)terrainSize, v.y / (float)terrainSize), 5, 2.0f, 0.5f, 40.0f));
-        nodes.push_back(StreamNode(v.x, v.y, 1000000 * uplift + height, uplift));
+        float talusAngle = 0.35 + 1.25 * fabs(perlinNoise(Vector(v.x / (float)terrainSize, v.y / (float)terrainSize), 5, 2.0f, 0.5f, 1.0f));
+        nodes.push_back(StreamNode(v.x, v.y, height + 100000 * uplift, uplift, talusAngle));
     }
 
     CDT::Triangulation<float> cdt;
@@ -85,7 +100,7 @@ void StreamGraph::initialise(){
             continue;
         }
         for (int j = 0; j < nodes[i].neighbours.size(); j++){
-            if (nodes[i].edgeShareCount[j] < 2){
+            if (nodes[i].edgeShareCount[j] < 2 && nodes[i].uplift < 0.36 * 5.5f * pow(10.0f, -4)){
                 nodes[i].boundaryNode = true;
                 nodes[i].height = 0.0f;
                 ((StreamNode*)nodes[i].neighbours[j])->boundaryNode = true;
@@ -225,7 +240,7 @@ void StreamGraph::calculatePasses(){
     std::map<std::pair<LakeNode*, LakeNode*>, LakeEdge*> passMap;
     std::vector<LakeEdge*> validPasses;
 
-    auto start = std::chrono::high_resolution_clock::now();
+    // auto start = std::chrono::high_resolution_clock::now();
     // Find lake connections which could form passes
     for (int i = 0; i < edges.size(); i++){
         StreamNode *node1 = &(nodes[std::get<0>(edges[i])]);
@@ -258,14 +273,14 @@ void StreamGraph::calculatePasses(){
             passes.push_back(LakeEdge(node1, node2, passHeight));
         }
     }
-    auto stop = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-    std::cout <<"find passes " << (float)duration.count() / 1000000 << "\n";
+    // auto stop = std::chrono::high_resolution_clock::now();
+    // auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+    // std::cout <<"find passes " << (float)duration.count() / 1000000 << "\n";
 
     // Compute lake trees
     std::priority_queue<LakeEdge*, std::vector<LakeEdge*>, PassCompare> candidates; 
 
-    start = std::chrono::high_resolution_clock::now();
+    // start = std::chrono::high_resolution_clock::now();
     // Remove connections aways from river mouth (no flow upstream)
     for (int i = 0; i < lakeGraph.size(); i++){
         if (lakeGraph[i]->isRiverMouth){
@@ -288,11 +303,11 @@ void StreamGraph::calculatePasses(){
             lakeGraph[i]->neighbours.clear();
         }
     }
-    stop = std::chrono::high_resolution_clock::now();
-    duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-    std::cout <<"tree root nodes " << (float)duration.count() / 1000000 << "\n";
+    // stop = std::chrono::high_resolution_clock::now();
+    // duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+    // std::cout <<"tree root nodes " << (float)duration.count() / 1000000 << "\n";
 
-    start = std::chrono::high_resolution_clock::now();
+    // start = std::chrono::high_resolution_clock::now();
     // Build valid lake tree
     while (!candidates.empty()){
         // // Find candidate pass with minimum height
@@ -325,9 +340,9 @@ void StreamGraph::calculatePasses(){
         
         upperLake->neighbours.clear();
     }
-    stop = std::chrono::high_resolution_clock::now();
-    duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-    std::cout <<"build tree " << (float)duration.count() / 1000000 << "\n";
+    // stop = std::chrono::high_resolution_clock::now();
+    // duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+    // std::cout <<"build tree " << (float)duration.count() / 1000000 << "\n";
 
     // Update stream graph with new connections formed by the lake trees
     for (int p = 0; p < validPasses.size(); p++){
@@ -358,14 +373,40 @@ Mesh* StreamGraph::createMesh(){
     return mesh;
 }
 
-// float** StreamGraph::createHightfield(float precision){
-//     float **heightfield = createHeightfield(terrainSize / precision);
+float** StreamGraph::createHightfield(float precision, float sigma, float *maxHeight){
+    int arraySize = (int)(terrainSize / precision);
+    float **heightfield = createHeightfield(arraySize);
+    float **kernelSum = createHeightfield(arraySize);
 
-//     for (int i = 0; i < nodes.size(); i++){
-//         int iX = (int)(nodes[i].position.x / precision);
-//         int iZ = (int)(nodes[i].position.y / precision);
-//         heightfield[iZ][iX] = nodes[i].height;
-//     }
+    int range = (int)(4.0f * sigma);
 
-//     // Interpolate values
-// }
+    for (int n = 0; n < nodes.size(); n++){
+        int nodeX = (int)(nodes[n].position.x / precision);
+        int nodeZ = (int)(nodes[n].position.y / precision);
+        
+        for (int i = std::max(nodeX - range, 0); i < std::min(nodeX + range, arraySize); i++) {
+            for (int j = std::max(nodeZ - range, 0); j < std::min(nodeZ + range, arraySize); j++) {
+                double distanceSquared = pow(i - nodeX, 2) + pow(j - nodeZ, 2);
+                double gaussian = exp(-distanceSquared / (2 * pow(sigma, 2)));
+                heightfield[i][j] += (nodes[n].height / precision) * gaussian;
+                kernelSum[i][j] += gaussian;
+            }
+        }
+    }
+
+    // Normalise
+    float max = 0.0f;
+    for (int i = 0; i < arraySize; i++) {
+        for (int j = 0; j < arraySize; j++) {
+            heightfield[i][j] /= kernelSum[i][j];
+            if (heightfield[i][j] > max){
+                max= heightfield[i][j];
+            }
+        }
+    }
+
+    freeHeightfield(kernelSum, arraySize);
+    *maxHeight = max;
+
+    return heightfield;
+}
