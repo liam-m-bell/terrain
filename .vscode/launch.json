@@ -8,10 +8,10 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/output/terrain.out",
+            "program": "${workspaceFolder}\\output\\terrain.exe",
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/output/",
+            "cwd": "${workspaceFolder}\\output\\",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
@@ -27,8 +27,7 @@
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "C/C++: gcc build active file",
-            "postDebugTask": "png"
+            "preLaunchTask": "C/C++: g++.exe build active file",
         }
 
     ]
