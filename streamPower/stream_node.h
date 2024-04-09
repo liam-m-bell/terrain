@@ -27,7 +27,10 @@ public:
 
     LakeNode *lakeNode;
 
-    StreamNode(float x, float y, float height, float uplift, float talusAngle){
+    int number = -1;
+
+    StreamNode(int number, float x, float y, float height, float uplift, float talusAngle){
+        this->number = number;
         this->position = Vector(x, y);
         this->height = height;
         this->uplift = uplift;

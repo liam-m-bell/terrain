@@ -30,7 +30,7 @@ float StreamGraph::getUplift(Vector p){
     Vector upliftIndex = ((float)upliftFieldSize / (float)terrainSize) * p;
     float uplift = upliftField[(int)upliftIndex.x][(int)(upliftIndex.y)];
     return uplift;
-    //return 5.5f * pow(10.0f, -4);
+    //return 5.5f * pow(10.0f, -4) * p.x / (float)terrainSize;
 }
 
 void StreamGraph::initialise(){
@@ -51,11 +51,15 @@ void StreamGraph::initialise(){
         points.push_back(Vector(p[0], p[1]));
     }
 
+    std::cout << "Number of nodes: " << points.size() << "\n";
+
+    int i = 0;
     for (Vector v : points){
         float uplift = getUplift(v);
         float height = 0.05f * fabs(warpedNoise(Vector(5.2f, 1.3f), 0.0f, Vector(v.x / (float)terrainSize, v.y / (float)terrainSize), 5, 2.0f, 0.5f, 40.0f));
         float talusAngle = 0.35 + 1.25 * fabs(perlinNoise(Vector(v.x / (float)terrainSize, v.y / (float)terrainSize), 5, 2.0f, 0.5f, 1.0f));
-        nodes.push_back(StreamNode(v.x, v.y, height + 100000 * uplift, uplift, talusAngle));
+        nodes.push_back(StreamNode(i, v.x, v.y, height, uplift, talusAngle));
+        i++;
     }
 
     CDT::Triangulation<float> cdt;
@@ -100,7 +104,7 @@ void StreamGraph::initialise(){
             continue;
         }
         for (int j = 0; j < nodes[i].neighbours.size(); j++){
-            if (nodes[i].edgeShareCount[j] < 2 && nodes[i].uplift < 0.36 * 5.5f * pow(10.0f, -4)){
+            if (nodes[i].edgeShareCount[j] < 2){
                 nodes[i].boundaryNode = true;
                 nodes[i].height = 0.0f;
                 ((StreamNode*)nodes[i].neighbours[j])->boundaryNode = true;
@@ -162,6 +166,7 @@ void StreamGraph::createStreamTrees(){
         StreamNode *node = &(nodes[i]);
         node->downstreamNode = 0;
         node->upstreamNodes.clear();
+        node->lakeNode = 0;
     }
 
     // Create new stream trees
@@ -218,8 +223,10 @@ bool StreamGraph::update(){
     // Update node
     bool allConverged = true;
     for (int i = 0; i < nodes.size(); i++){
-        if (nodes[i].boundaryNode){
+        //if (nodes[i].boundaryNode){
+        if (nodes[i].downstreamNode == 0){
             // Root
+            //printf("Root %d\n", nodes[i].number);
             bool converged = (&nodes[i])->update(timeStep);
             allConverged = converged && allConverged;
         }
@@ -237,10 +244,8 @@ bool StreamGraph::update(){
 
 void StreamGraph::calculatePasses(){
     std::vector<LakeEdge> passes;
-    std::map<std::pair<LakeNode*, LakeNode*>, LakeEdge*> passMap;
-    std::vector<LakeEdge*> validPasses;
+    std::vector<LakeEdge> validPasses;
 
-    // auto start = std::chrono::high_resolution_clock::now();
     // Find lake connections which could form passes
     for (int i = 0; i < edges.size(); i++){
         StreamNode *node1 = &(nodes[std::get<0>(edges[i])]);
@@ -273,15 +278,12 @@ void StreamGraph::calculatePasses(){
             passes.push_back(LakeEdge(node1, node2, passHeight));
         }
     }
-    // auto stop = std::chrono::high_resolution_clock::now();
-    // auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-    // std::cout <<"find passes " << (float)duration.count() / 1000000 << "\n";
 
     // Compute lake trees
     std::priority_queue<LakeEdge*, std::vector<LakeEdge*>, PassCompare> candidates; 
 
-    // start = std::chrono::high_resolution_clock::now();
     // Remove connections aways from river mouth (no flow upstream)
+    int interiorNodeCount = 0;
     for (int i = 0; i < lakeGraph.size(); i++){
         if (lakeGraph[i]->isRiverMouth){
             for (int j = 0; j < lakeGraph[i]->neighbours.size(); j++){
@@ -302,35 +304,41 @@ void StreamGraph::calculatePasses(){
             }
             lakeGraph[i]->neighbours.clear();
         }
+        else{
+            interiorNodeCount++;
+        }
     }
-    // stop = std::chrono::high_resolution_clock::now();
-    // duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-    // std::cout <<"tree root nodes " << (float)duration.count() / 1000000 << "\n";
 
-    // start = std::chrono::high_resolution_clock::now();
     // Build valid lake tree
+    buildLakeTree:
     while (!candidates.empty()){
         // // Find candidate pass with minimum height
         LakeEdge *minHeightPass = candidates.top();
+        candidates.pop();
 
         LakeNode *lowerLake = minHeightPass->lowerLake();
         LakeNode *upperLake = minHeightPass->higherLake();
-        validPasses.push_back(minHeightPass);
 
-        // Remove valid pass as candidate
-        candidates.pop();
-        
+        for (int i = 0; i < validPasses.size(); i++){
+            if (validPasses[i].higherLake() == upperLake){
+                // Cannot have lake flowing in two differnt directions
+                goto buildLakeTree;
+            }
+        }
+
+        validPasses.push_back(*minHeightPass);
+
         // Add neighbours of upper lake as candidates for next pass (if not river mouth)
         for (int j = 0; j < upperLake->neighbours.size(); j++){
-            if (!lakeGraph[j]->isRiverMouth){
+            if (!((LakeNode*)(upperLake->neighbours[j]))->isRiverMouth){
                 for (int p = 0; p < passes.size(); p++){
                     // Set direciton of lake flow for lake tree
-                    if (passes[p].lake1 == lowerLake && passes[p].lake2 == upperLake){
+                    if (passes[p].lake1 == upperLake && passes[p].lake2 == upperLake->neighbours[j]){
                         passes[p].direction = twoToOne;
                         candidates.push(&passes[p]);
 
                     }
-                    else if (passes[p].lake2 == lowerLake && passes[p].lake1 == upperLake){
+                    else if (passes[p].lake2 == upperLake && passes[p].lake1 == upperLake->neighbours[j]){
                         passes[p].direction = oneToTwo;
                         candidates.push(&passes[p]);
                     }
@@ -340,14 +348,11 @@ void StreamGraph::calculatePasses(){
         
         upperLake->neighbours.clear();
     }
-    // stop = std::chrono::high_resolution_clock::now();
-    // duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-    // std::cout <<"build tree " << (float)duration.count() / 1000000 << "\n";
 
     // Update stream graph with new connections formed by the lake trees
     for (int p = 0; p < validPasses.size(); p++){
-        StreamNode *upperLakeRoot = validPasses[p]->higherLake()->streamNode;
-        StreamNode *receiverNode = validPasses[p]->lowerPass();
+        StreamNode *upperLakeRoot = validPasses[p].higherLake()->streamNode;
+        StreamNode *receiverNode = validPasses[p].lowerPass();
 
         receiverNode->upstreamNodes.push_back(upperLakeRoot);
         upperLakeRoot->downstreamNode = receiverNode;

@@ -4,6 +4,7 @@
 #include <time.h>
 #include <iostream>
 #include <chrono>
+#include <cstring>
 
 #include "core/heightfield.h"
 #include "core/mesh.h"
@@ -31,34 +32,47 @@ int main(){
     StreamGraph sg = StreamGraph(nodeCount, size, upliftField, upliftFieldSize);
     sg.initialise();
 
-    std::cout << "Initialised";
+    std::cout << "Initialised\n";
     std::cout.flush();
 
     auto start = std::chrono::high_resolution_clock::now();
-    for (int i = 0; i < 300; i++){
+    for (int i = 0; i < 100; i++){
         bool converged = sg.update();
-        if (converged){
-            break;
-        }
+        // if (converged){
+        //     break;
+        // }
+
+        // float resolution = 64;
+        // float standardDev = 180 / resolution;
+
+        // float maxHeight;
+        // float **heightfield = sg.createHightfield(resolution, standardDev, &maxHeight);
+        // std::string filenameString = "steps/image";
+        // filenameString.append(std::to_string(i));
+        // filenameString.append(".ppm");
+        // char filename[filenameString.length() + 1]; 
+	    // strcpy(filename, filenameString.c_str()); 
+        // outputHeightfieldAsImage(heightfield, size / resolution, maxHeight, filename);
+        // freeHeightfield(heightfield, size / resolution);
     }
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
     std::cout << "Total" << (float)duration.count() / 1000000 << "\n";
 
-    // Create mesh from graph and export mesh as OBJ file
-    //Mesh *mesh = sg.createMesh();
-    //exportMeshAsObj(mesh, "model.obj");
-    //freeMesh(mesh);
+    //Create mesh from graph and export mesh as OBJ file
+    Mesh *mesh = sg.createMesh();
+    exportMeshAsObj(mesh, "model.obj");
+    freeMesh(mesh);
     
     float resolution = 64;
     float standardDev = 180 / resolution;
 
     float maxHeight;
     float **heightfield = sg.createHightfield(resolution, standardDev, &maxHeight);
-    Mesh *mesh = createMeshFromHeightfield(heightfield, size / resolution);
+    // Mesh *mesh = createMeshFromHeightfield(heightfield, size / resolution);
     
-    exportMeshAsObj(mesh, (char*)"model.obj");
-    freeMesh(mesh);
+    // exportMeshAsObj(mesh, (char*)"model.obj");
+    // freeMesh(mesh);
 
     outputHeightfieldAsImage(heightfield, size / resolution, maxHeight, (char*)"image.ppm");
     freeHeightfield(heightfield, size / resolution);

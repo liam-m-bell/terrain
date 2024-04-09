@@ -40,7 +40,7 @@ public:
 class PassCompare{
     public:
         bool operator()(LakeEdge *a, LakeEdge *b){
-            return (a->passHeight <= b->passHeight);
+            return (a->passHeight > b->passHeight);
         }
 };
 

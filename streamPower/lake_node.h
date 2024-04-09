@@ -18,9 +18,6 @@ public:
 
     std::vector<LakeEdge*> passes;
 
-    std::vector<StreamNode*> upstreamNodes;
-    std::vector<std::tuple<LakeNode*, int>> upstreamLakes; //with pass number
-
     LakeNode()
 	{
         
