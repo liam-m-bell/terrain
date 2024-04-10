@@ -26,7 +26,7 @@
 //             for (int j = startY; j <= endY; j++){
 //                 int index = grid[j][i] -1;
 //                 if (index != -1){
-//                     float distanceSquared = (point - points[index]).len_sqr();
+//                     float distanceSquared = (point - points[index]).lengthSquared();
 //                     if (distanceSquared < pow(radius, 2)) {
 //                         return false;
 //                     }

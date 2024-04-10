@@ -36,7 +36,7 @@ Mesh *createMeshFromHeightfield(float **heightfield, const int size){
     // Terrain mesh
     for (int z = 0; z < size; ++z){
         for (int x = 0; x < size; x++) {
-            float elevation = heightfield[x][z];
+            float elevation = heightfield[z][x];
             addVertexToMesh(mesh, x, elevation, z);
         }
     }

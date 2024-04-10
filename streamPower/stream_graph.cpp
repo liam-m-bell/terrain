@@ -17,8 +17,8 @@ float rrandRange(float min, float max){
 }
 
 Vector circumcentreOfTriangle(Vector a, Vector b, Vector c){
-    float t = a.len_sqr() - b.len_sqr();
-    float u = a.len_sqr() - c.len_sqr();
+    float t = a.lengthSquared() - b.lengthSquared();
+    float u = a.lengthSquared() - c.lengthSquared();
     float J = ((a.x - b.x) * (a.y - c.y) - ((a.x - c.x) * (a.y - b.y))) * 2.0f;
 
     float x = (-(a.y - b.y) * u + (a.y - c.y) * t) / J;
@@ -104,7 +104,7 @@ void StreamGraph::initialise(){
             continue;
         }
         for (int j = 0; j < nodes[i].neighbours.size(); j++){
-            if (nodes[i].edgeShareCount[j] < 2){
+            if (nodes[i].edgeShareCount[j] < 2 && nodes[i].uplift < 1.0f * pow(10.0f, -4)){
                 nodes[i].boundaryNode = true;
                 nodes[i].height = 0.0f;
                 ((StreamNode*)nodes[i].neighbours[j])->boundaryNode = true;
@@ -223,8 +223,8 @@ bool StreamGraph::update(){
     // Update node
     bool allConverged = true;
     for (int i = 0; i < nodes.size(); i++){
-        //if (nodes[i].boundaryNode){
-        if (nodes[i].downstreamNode == 0){
+        if (nodes[i].boundaryNode){
+        //if (nodes[i].downstreamNode == 0){
             // Root
             //printf("Root %d\n", nodes[i].number);
             bool converged = (&nodes[i])->update(timeStep);

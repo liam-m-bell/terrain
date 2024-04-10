@@ -69,6 +69,10 @@
         "queue": "cpp",
         "stack": "cpp",
         "xhash": "cpp",
-        "array": "cpp"
+        "array": "cpp",
+        "functional": "cpp",
+        "numeric": "cpp",
+        "unordered_map": "cpp",
+        "unordered_set": "cpp"
     }
 }
