@@ -7,19 +7,17 @@
 
 #include "../core/mesh.h"
 
-float getInitalUplift(float x, float y);
 Vector circumcentreOfTriangle(Vector a, Vector b, Vector c);
 float areaOfTriangle(Vector a, Vector b, Vector c);
 
 class StreamGraph{
 public:
     int terrainSize;
-    int nodeCount;
 
     float **upliftField;
     int upliftFieldSize;
 
-    float timeStep = 2.5 * pow(10.0f, 5);
+    float timeStep;
 
     std::vector<StreamNode> nodes;
     std::vector<Triangle> triangles;
@@ -27,23 +25,22 @@ public:
 
     std::vector<LakeNode*> lakeGraph;
 
-    StreamGraph(int nodeCount, int terrainSize, float **upliftField, int upliftFieldSize){
-        this->nodeCount = nodeCount;
-        this->upliftField = upliftField;
+    StreamGraph(int terrainSize, float timeStep, float **upliftField, int upliftFieldSize){
         this->terrainSize = terrainSize;
-        this->upliftFieldSize =upliftFieldSize;
+        this->timeStep = timeStep;
+        this->upliftField = upliftField;
+        this->upliftFieldSize = upliftFieldSize;
     }
 
     StreamGraph(){
 
     }
     
-    void initialise();
+    void initialise(int nodeCount, float m, float n, float k, float convergenceThreshold, float minimumTalusAngle, float maximumTalusAngle);
     float getUplift(Vector p);
     void voronoiTessellation();
     void createStreamTrees();
     bool update();
-    void updateNode(StreamNode *node, float dt);
     void calculatePasses();
 
     Mesh *createMesh();

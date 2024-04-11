@@ -7,10 +7,11 @@
 
 class StreamNode : public Node{
 public:
-    const float m = 0.5f;
-    const float erosionConstant = 5.0 * pow(10.0f, -7);
-    const float convergenceThreshold = 0.2;
-    float talusAngle = 0.5;
+    float m;
+    float n;
+    float erosionConstant;
+    float convergenceThreshold;
+    float talusAngle;
 
     Vector position;
     float height;
@@ -19,7 +20,6 @@ public:
     float drainageArea;
 
     bool boundaryNode = false;
-
     std::vector<int> edgeShareCount;
 
     StreamNode *downstreamNode = 0;
@@ -27,13 +27,14 @@ public:
 
     LakeNode *lakeNode;
 
-    int number = -1;
-
-    StreamNode(int number, float x, float y, float height, float uplift, float talusAngle){
-        this->number = number;
+    StreamNode(float x, float y, float height, float uplift, float m, float n, float k, float convergenceThreshold, float talusAngle){
         this->position = Vector(x, y);
         this->height = height;
         this->uplift = uplift;
+        this->m = m;
+        this->n = n;
+        this->erosionConstant = k;
+        this->convergenceThreshold = convergenceThreshold;
         this->talusAngle = talusAngle;
     }
 

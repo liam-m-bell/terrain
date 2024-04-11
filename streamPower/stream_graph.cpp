@@ -8,6 +8,7 @@
 #include <map>
 #include <stdint.h>
 #include <utility>
+#include <math.h>
 
 #include "../core/noise.h"
 #include "../core/heightfield.h"
@@ -33,12 +34,12 @@ float StreamGraph::getUplift(Vector p){
     //return 5.5f * pow(10.0f, -4) * p.x / (float)terrainSize;
 }
 
-void StreamGraph::initialise(){
+void StreamGraph::initialise(int nodeCount, float m, float n, float k, float convergenceThreshold, float minimumTalusAngle, float maximumTalusAngle){
     // Sample points for stream nodes using poisson disk samping
     // float radius = (float)terrainSize / sqrt((float)nodeCount);
     // std::vector<Vector> points = poissonDiskSampling(radius, Vector(terrainSize, terrainSize));
 
-    // Input parameters.
+    // Input parameter
     auto kRadius = (float)terrainSize / sqrt((float)nodeCount);
     auto kXMin = std::array<float, 2>{{0.0f, 0.0f}};
     auto kXMax = std::array<float, 2>{{(float)terrainSize, (float)terrainSize}};
@@ -51,15 +52,11 @@ void StreamGraph::initialise(){
         points.push_back(Vector(p[0], p[1]));
     }
 
-    std::cout << "Number of nodes: " << points.size() << "\n";
-
-    int i = 0;
     for (Vector v : points){
         float uplift = getUplift(v);
         float height = 0.05f * fabs(warpedNoise(Vector(5.2f, 1.3f), 0.0f, Vector(v.x / (float)terrainSize, v.y / (float)terrainSize), 5, 2.0f, 0.5f, 40.0f));
-        float talusAngle = 0.35 + 1.25 * fabs(perlinNoise(Vector(v.x / (float)terrainSize, v.y / (float)terrainSize), 5, 2.0f, 0.5f, 1.0f));
-        nodes.push_back(StreamNode(i, v.x, v.y, height, uplift, talusAngle));
-        i++;
+        float talusAngle = (M_PI / 180.0f) * minimumTalusAngle + 1.25 * fabs(perlinNoise(Vector(v.x / (float)terrainSize, v.y / (float)terrainSize), 5, 2.0f, 0.5f, 1.0f));
+        nodes.push_back(StreamNode(v.x, v.y, height, uplift, m, n, k, convergenceThreshold, talusAngle));
     }
 
     CDT::Triangulation<float> cdt;
@@ -104,7 +101,7 @@ void StreamGraph::initialise(){
             continue;
         }
         for (int j = 0; j < nodes[i].neighbours.size(); j++){
-            if (nodes[i].edgeShareCount[j] < 2 && nodes[i].uplift < 1.0f * pow(10.0f, -4)){
+            if (nodes[i].edgeShareCount[j] < 2 /* && nodes[i].uplift < 1.0f * pow(10.0f, -4)*/){
                 nodes[i].boundaryNode = true;
                 nodes[i].height = 0.0f;
                 ((StreamNode*)nodes[i].neighbours[j])->boundaryNode = true;
@@ -116,6 +113,10 @@ void StreamGraph::initialise(){
 
     // Calculate voronoi areas for each node
     voronoiTessellation();
+
+    std::cout << "Initialised stream graph\n";
+    std::cout << "Node count: " << nodes.size() << "\n";
+    std::cout.flush();
 }
 
 float areaOfTriangle(Vector a, Vector b, Vector c){
@@ -150,13 +151,6 @@ void StreamGraph::voronoiTessellation(){
             }
         }
     }
-
-    // float sum = 0.0f;
-    // for (auto node : nodes){
-    //     sum += node.voronoiArea;
-    //     std::cout << node.voronoiArea << "\n";
-    // }
-    // std::cout << "Total:" << sum << "\n";
 }
 
 // Calculate stream trees based on heights of stream nodes
