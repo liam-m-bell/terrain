@@ -16,6 +16,8 @@ public:
     Vector position;
     float height;
     float uplift;
+
+    float rainfall;
     float voronoiArea = 0;
     float drainageArea;
 
@@ -27,7 +29,7 @@ public:
 
     LakeNode *lakeNode;
 
-    StreamNode(float x, float y, float height, float uplift, float m, float n, float k, float convergenceThreshold, float talusAngle){
+    StreamNode(float x, float y, float height, float uplift, float m, float n, float k, float convergenceThreshold, float talusAngle, float rainfall){
         this->position = Vector(x, y);
         this->height = height;
         this->uplift = uplift;
@@ -36,6 +38,7 @@ public:
         this->erosionConstant = k;
         this->convergenceThreshold = convergenceThreshold;
         this->talusAngle = talusAngle;
+        this->rainfall = rainfall;
     }
 
     StreamNode()

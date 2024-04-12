@@ -34,6 +34,16 @@ float StreamGraph::getUplift(Vector p){
     //return 5.5f * pow(10.0f, -4) * p.x / (float)terrainSize;
 }
 
+float StreamGraph::getRainfall(Vector p){
+    if (variableRainfall){
+        Vector rainfallIndex = ((float)rainfallFieldSize / (float)terrainSize) * p;
+        float rainfall = rainfallField[(int)rainfallIndex.x][(int)(rainfallIndex.y)];
+        return rainfall;
+    }
+
+    return 1.0f;
+}
+
 void StreamGraph::initialise(int nodeCount, float m, float n, float k, float convergenceThreshold, float minimumTalusAngle, float maximumTalusAngle){
     // Sample points for stream nodes using poisson disk samping
     // float radius = (float)terrainSize / sqrt((float)nodeCount);
@@ -56,8 +66,9 @@ void StreamGraph::initialise(int nodeCount, float m, float n, float k, float con
         float uplift = getUplift(v);
         float height = 0.05f * fabs(warpedNoise(Vector(5.2f, 1.3f), 0.0f, Vector(v.x / (float)terrainSize, v.y / (float)terrainSize), 5, 2.0f, 0.5f, 40.0f));
         float talusAngle = (M_PI / 180.0f) * minimumTalusAngle + 1.25 * fabs(perlinNoise(Vector(v.x / (float)terrainSize, v.y / (float)terrainSize), 5, 2.0f, 0.5f, 1.0f));
-        nodes.push_back(StreamNode(v.x, v.y, height, uplift, m, n, k, convergenceThreshold, talusAngle));
-    }
+        float rainfall = getRainfall(v);
+        nodes.push_back(StreamNode(v.x, v.y, height, uplift, m, n, k, convergenceThreshold, talusAngle, rainfall));
+    }   
 
     CDT::Triangulation<float> cdt;
     cdt.insertVertices(

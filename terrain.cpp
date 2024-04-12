@@ -48,7 +48,7 @@ char *getArg(int argc, char *argv[], char* argName){
 
 int main(int argc, char *argv[]){
     // Parse arguments
-    if (argc > 42) {
+    if (argc > 45) {
         std::cout << "Too many arguments!";
         return 1;
     }
@@ -76,6 +76,11 @@ int main(int argc, char *argv[]){
     float maximumTalusAngle = atof(getArg(argc, argv, (char*)"-maximumTalusAngle")); // Maximum thermal erosion talus angle
     char *perlinNoiseDataFilename = getArg(argc, argv, (char*)"-perlinNoiseDataFilename"); //Filename of perlin noise seed data
 
+    // Rainfall
+    bool variableRainfall = hasArg(argc, argv, (char*)"-variableRainfall");
+    float maximumRainfall = atof(getArg(argc, argv, (char*)"-maximumRainfall")); // Maximum value of the rainfall
+    char *rainfallFieldFilename = getArg(argc, argv, (char*)"-rainfallFieldFilename"); // Filename of ppm image file which contains the rainfall field
+
     // Ouput mesh
     bool generateMesh = hasArg(argc, argv, (char*)"-generateMesh"); // Should tesselated mesh of terrain be generated
     char *meshFilename = getArg(argc, argv, (char*)"-meshFilename"); // Filename to write mesh to
@@ -98,8 +103,12 @@ int main(int argc, char *argv[]){
     int upliftFieldSize;
     float **upliftField = importImageAsHeightfield(upliftFieldFilename, &upliftFieldSize, maximumUplift);
 
+    // Import rainfall
+     int rainfallFieldSize;
+    float **rainfallField = importImageAsHeightfield(rainfallFieldFilename, &rainfallFieldSize, maximumRainfall);
+
     // Initialise
-    StreamGraph sg = StreamGraph(terrainSize, timeStep, upliftField, upliftFieldSize);
+    StreamGraph sg = StreamGraph(terrainSize, timeStep, upliftField, upliftFieldSize, variableRainfall, rainfallField, rainfallFieldSize);
     sg.initialise(nodeCount, m, n, k, convergenceThreshold, minimumTalusAngle, maximumTalusAngle);
 
     // Main simulation loop
@@ -125,6 +134,10 @@ int main(int argc, char *argv[]){
     std::cout << "\nTime elapsed: " << (float)duration.count() / 1000000 << "s\n";
 
     freeHeightfield(upliftField, upliftFieldSize);
+
+    if (variableRainfall){
+        freeHeightfield(rainfallField, rainfallFieldSize);
+    }
 
     if (generateMesh){
         //Create mesh from graph and export mesh as OBJ file

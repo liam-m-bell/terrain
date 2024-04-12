@@ -17,6 +17,10 @@ public:
     float **upliftField;
     int upliftFieldSize;
 
+    bool variableRainfall;
+    float **rainfallField;
+    int rainfallFieldSize;
+
     float timeStep;
 
     std::vector<StreamNode> nodes;
@@ -25,11 +29,14 @@ public:
 
     std::vector<LakeNode*> lakeGraph;
 
-    StreamGraph(int terrainSize, float timeStep, float **upliftField, int upliftFieldSize){
+    StreamGraph(int terrainSize, float timeStep, float **upliftField, int upliftFieldSize, bool variableRainfall, float **rainfallField, int rainfallFieldSize){
         this->terrainSize = terrainSize;
         this->timeStep = timeStep;
         this->upliftField = upliftField;
         this->upliftFieldSize = upliftFieldSize;
+        this->variableRainfall = variableRainfall;
+        this->rainfallField = rainfallField;
+        this->rainfallFieldSize = rainfallFieldSize;
     }
 
     StreamGraph(){
@@ -45,6 +52,8 @@ public:
 
     Mesh *createMesh();
     float **createHightfield(float precision, float sigma, float *maxHeight);
+
+    float getRainfall(Vector p);
 };
 
 #endif

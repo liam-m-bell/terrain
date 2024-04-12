@@ -14,7 +14,7 @@ bool StreamNode::addEdge(StreamNode *node){
 
 // Calculate drainage area of stream node recursively
 float StreamNode::calculateDrainageArea(){
-    float area = voronoiArea;
+    float area = voronoiArea * rainfall;
     for (StreamNode *upstreamNode : upstreamNodes){
         area += upstreamNode->calculateDrainageArea();
     }
