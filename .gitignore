@@ -2,3 +2,5 @@
 *.out
 *.ppm
 *.png
+*.exe
+lib/*

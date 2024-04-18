@@ -1,38 +1,38 @@
 {
-	"version": "2.0.0",
-	"tasks": [
-		{
-			"type": "cppbuild",
-			"label": "C/C++: gcc build active file",
-			"command": "/usr/bin/g++",
-			"args": [
-				"-fdiagnostics-color=always",
-				"-g",
-				"${workspaceFolder}/terrain.cpp",
-				"-o",
-				"${workspaceFolder}/output/terrain.out",
+    "tasks": [
+        {
+            "type": "cppbuild",
+            "label": "C/C++: g++.exe build active file",
+            "command": "C:\\Program Files (x86)\\mingw-w64\\i686-8.1.0-posix-dwarf-rt_v6-rev0\\mingw32\\bin\\g++.exe",
+            "args": [
+                "-fdiagnostics-color=always",
+                "-g",
+                "${workspaceFolder}\\terrain.cpp",
+                "-o",
+                "${workspaceFolder}\\output\\terrain.exe",
 				"-lm",
-				//"${workspaceFolder}/core/vector.cpp",
 				"${workspaceFolder}/core/heightfield.cpp",
 				"${workspaceFolder}/core/mesh.cpp",
 				"${workspaceFolder}/core/noise.cpp",
 				"${workspaceFolder}/procedural/diamond_square.cpp",
 				"${workspaceFolder}/procedural/noise_heightfield.cpp",
-				"${workspaceFolder}/simulation/musgrave_erosion.cpp"
-			],
-			"options": {
-				"cwd": "${fileDirname}"
-			},
-			"problemMatcher": [
-				"$gcc"
-			],
-			"group": "build",
-			"detail": "compiler: /usr/bin/gcc"
-		},
-		{
-            "label": "png",
-            "type": "shell",
-            "command": "pnmtopng ${workspaceFolder}/output/image.ppm > ${workspaceFolder}/output/image.png"
+				"${workspaceFolder}/streamPower/graph/node.cpp",
+				"${workspaceFolder}/streamPower/stream_node.cpp",
+				"${workspaceFolder}/streamPower/stream_graph.cpp",
+				"${workspaceFolder}/streamPower/lake_edge.cpp",
+            ],
+            "options": {
+                "cwd": "${fileDirname}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "compiler: C:\\Program Files (x86)\\mingw-w64\\i686-8.1.0-posix-dwarf-rt_v6-rev0\\mingw32\\bin\\g++.exe"
         }
-	]
+    ],
+    "version": "2.0.0"
 }

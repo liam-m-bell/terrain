@@ -1,11 +1,14 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <iostream>
+#include <fstream>
+#include <sstream>
 
 // Allocates memory for a heightfield
 float **createHeightfield(const int size){
     float **a = (float**)malloc(size * sizeof(float*));
     for (int i = 0; i < size; i++){
-        a[i] = (float*)malloc(size * sizeof(float));
+        a[i] = (float*)calloc(size, sizeof(float));
     }
 
     return a;
@@ -36,4 +39,56 @@ void outputHeightfieldAsImage(float **a, const int size, const float maxHeight, 
     }
 
     fclose(imageFile);
+}
+
+float **importImageAsHeightfield(char *filename, int *terrainSize, const float maxHeight){
+    std::ifstream imageFile(filename);
+    
+    std::string lineString;
+
+    std::getline(imageFile, lineString);
+    if (lineString[0] != 'P'){ 
+        return 0;
+    }
+
+    std::getline(imageFile, lineString);
+    while (lineString[0] == '#') {
+        std::getline(imageFile, lineString);
+    }
+
+    std::istringstream dimensions(lineString);
+
+    int width, height;
+    
+    dimensions >> width;
+    dimensions >> height;
+
+    if (width != height){
+        return 0;
+    }
+
+    int size = width;
+    float **heightfield = createHeightfield(size);
+
+    std::getline(imageFile, lineString);
+    std::istringstream maxValueString(lineString);
+    float maxImageValue;
+    maxValueString >> maxImageValue;
+
+    char imageChar;
+    for (int i = 0; i < size * size; i++) {
+        std::getline(imageFile, lineString);
+        std::istringstream valueString(lineString);
+        float value;
+        valueString >> value;
+        float height = value * maxHeight / maxImageValue;
+        heightfield[i / size][i % size] = height;
+        std::getline(imageFile, lineString);
+        std::getline(imageFile, lineString);
+    }
+
+    imageFile.close();
+
+    *terrainSize = size;
+    return heightfield;
 }

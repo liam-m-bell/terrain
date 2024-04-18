@@ -8,10 +8,37 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/output/terrain.out",
-            "args": [],
+            "program": "${workspaceFolder}\\output\\terrain.exe",
+            "args": [
+                "-terrainSize", "30000",
+                "-nodeCount", "25000",
+                "-m", "0.5",
+                "-n", "1",
+                "-k", "0.0000005",
+                "-timeStep", "250000",
+                "-maxTimeSteps", "300",
+                "-convergenceThreshold", "50",
+                "-maximumUplift", "0.0005",
+                "-upliftFieldFilename", "upliftPoint.ppm",
+                "-minimumTalusAngle", "20",
+                "-maximumTalusAngle", "60",
+                //"-variableRainfall",
+                "-maximumRainfall", "10.0",
+                "-rainfallFieldFilename", "rainfall.ppm",
+                "-perlinNoiseDataFilename", "perlin_data.txt",
+                "-generateMesh",
+                "-meshFilename", "mesh.obj",
+                "-generateHeightfield",
+                "-heightfieldFilename", "heightfield.ppm",
+                "-heightfieldResolution", "64",
+                "-heightfieldStandardDeviation", "2.8",
+                "-generateHeightfieldMesh",
+                "-heightfieldMeshFilename", "heightfieldMesh.obj",
+                //"-generateImageSequence",
+                //"-imageSequenceInterval", "10"
+            ],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/output/",
+            "cwd": "${workspaceFolder}\\output\\",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
@@ -27,8 +54,7 @@
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "C/C++: gcc build active file",
-            "postDebugTask": "png"
+            "preLaunchTask": "C/C++: g++.exe build active file",
         }
 
     ]
