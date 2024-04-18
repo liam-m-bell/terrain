@@ -11,7 +11,7 @@
             "program": "${workspaceFolder}\\output\\terrain.exe",
             "args": [
                 "-terrainSize", "30000",
-                "-nodeCount", "40000",
+                "-nodeCount", "25000",
                 "-m", "0.5",
                 "-n", "1",
                 "-k", "0.0000005",
@@ -19,7 +19,7 @@
                 "-maxTimeSteps", "300",
                 "-convergenceThreshold", "50",
                 "-maximumUplift", "0.0005",
-                "-upliftFieldFilename", "uplift1.ppm",
+                "-upliftFieldFilename", "upliftPoint.ppm",
                 "-minimumTalusAngle", "20",
                 "-maximumTalusAngle", "60",
                 //"-variableRainfall",

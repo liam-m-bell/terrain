@@ -50,7 +50,7 @@ void StreamGraph::initialise(int nodeCount, float m, float n, float k, float con
     // std::vector<Vector> points = poissonDiskSampling(radius, Vector(terrainSize, terrainSize));
 
     // Input parameter
-    auto kRadius = (float)terrainSize / sqrt((float)nodeCount);
+    auto kRadius = (float)terrainSize / sqrt((float)nodeCount * 1.62f);
     auto kXMin = std::array<float, 2>{{0.0f, 0.0f}};
     auto kXMax = std::array<float, 2>{{(float)terrainSize, (float)terrainSize}};
 

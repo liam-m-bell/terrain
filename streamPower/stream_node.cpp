@@ -34,9 +34,6 @@ void StreamNode::addToLake(LakeNode *lakeNode){
 
 // Perform the stream power equation update on a node
 bool StreamNode::update(float dt){
-    if (this->downstreamNode){
-        //printf("%d flows to %d\n", this->number, this->downstreamNode->number);
-    }
     float newHeight = height;
     if (downstreamNode != 0){
         float horizontalDistance = (position - downstreamNode->position).length();
