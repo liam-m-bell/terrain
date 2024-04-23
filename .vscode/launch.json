@@ -8,7 +8,7 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}\\output\\terrain.exe",
+            "program": "${workspaceFolder}/output/terrain.out",
             "args": [
                 "-terrainSize", "30000",
                 "-nodeCount", "25000",
@@ -35,10 +35,10 @@
                 "-generateHeightfieldMesh",
                 "-heightfieldMeshFilename", "heightfieldMesh.obj",
                 //"-generateImageSequence",
-                //"-imageSequenceInterval", "10"
+                "-imageSequenceInterval", "10"
             ],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}\\output\\",
+            "cwd": "${workspaceFolder}/output/",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
@@ -54,7 +54,7 @@
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "C/C++: g++.exe build active file",
+            "preLaunchTask": "C/C++: gcc build active file",
         }
 
     ]

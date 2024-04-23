@@ -2,19 +2,18 @@
     "tasks": [
         {
             "type": "cppbuild",
-            "label": "C/C++: g++.exe build active file",
-            "command": "C:\\Program Files (x86)\\mingw-w64\\i686-8.1.0-posix-dwarf-rt_v6-rev0\\mingw32\\bin\\g++.exe",
+            "label": "C/C++: gcc build active file",
+            "command": "/usr/bin/g++",
             "args": [
                 "-fdiagnostics-color=always",
                 "-g",
-                "${workspaceFolder}\\terrain.cpp",
+                "${workspaceFolder}/terrain.cpp",
                 "-o",
-                "${workspaceFolder}\\output\\terrain.exe",
+                "${workspaceFolder}/output/terrain.out",
 				"-lm",
 				"${workspaceFolder}/core/heightfield.cpp",
 				"${workspaceFolder}/core/mesh.cpp",
 				"${workspaceFolder}/core/noise.cpp",
-				"${workspaceFolder}/procedural/diamond_square.cpp",
 				"${workspaceFolder}/procedural/noise_heightfield.cpp",
 				"${workspaceFolder}/streamPower/graph/node.cpp",
 				"${workspaceFolder}/streamPower/stream_node.cpp",
@@ -31,7 +30,7 @@
                 "kind": "build",
                 "isDefault": true
             },
-            "detail": "compiler: C:\\Program Files (x86)\\mingw-w64\\i686-8.1.0-posix-dwarf-rt_v6-rev0\\mingw32\\bin\\g++.exe"
+            "detail": "compiler: /usr/bin/gcc"
         }
     ],
     "version": "2.0.0"

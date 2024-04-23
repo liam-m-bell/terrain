@@ -9,9 +9,7 @@
 #include "core/heightfield.h"
 #include "core/mesh.h"
 #include "core/noise.h"
-#include "procedural/diamond_square.h"
 #include "procedural/noise_heightfield.h"
-#include "simulation/musgrave_erosion.h"
 
 #include "streamPower/stream_graph.h"
 
@@ -48,7 +46,7 @@ char *getArg(int argc, char *argv[], char* argName){
 
 int main(int argc, char *argv[]){
     // Parse arguments
-    if (argc > 45) {
+    if (argc > 46) {
         std::cout << "Too many arguments!";
         return 1;
     }
@@ -115,10 +113,11 @@ int main(int argc, char *argv[]){
     std::cout << "Running Simulation";
     auto start = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < maxTimeSteps; i++){
-        // Update terrain(char*)
+        // Update terrain
         bool converged = sg.update();
         
         std::cout << ".";
+        std::cout.flush();
 
         if (converged){
             std::cout << "Model converged in " << i << "time steps\n";
@@ -135,7 +134,7 @@ int main(int argc, char *argv[]){
 
     freeHeightfield(upliftField, upliftFieldSize);
 
-    if (variableRainfall){
+    if (rainfallField != 0){
         freeHeightfield(rainfallField, rainfallFieldSize);
     }
 
