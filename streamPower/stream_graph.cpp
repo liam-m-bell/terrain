@@ -13,10 +13,6 @@
 #include "../core/noise.h"
 #include "../core/heightfield.h"
 
-float rrandRange(float min, float max){
-    return min + (max - min) * ((float)rand() / RAND_MAX);
-}
-
 Vector circumcentreOfTriangle(Vector a, Vector b, Vector c){
     float t = a.lengthSquared() - b.lengthSquared();
     float u = a.lengthSquared() - c.lengthSquared();

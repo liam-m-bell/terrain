@@ -55,3 +55,7 @@ void loadNoisePermutation(char* fileName){
 	
 	for (int i=0; i < 256 ; i++) p[256+i] = p[i] = permutation[i];
 }
+
+float randRange(float min, float max){
+    return min + (max - min) * ((float)rand() / RAND_MAX);
+}

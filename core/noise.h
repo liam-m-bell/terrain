@@ -13,4 +13,6 @@ float ridgeNoise(Vector p, int octaves, float lacunarity, float persistence, flo
 
 float warpedNoise(Vector warp, float warpScale, Vector p, int octaves, float lacunarity, float persistence, float scale);
 
+float randRange(float min, float max);
+
 #endif

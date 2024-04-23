@@ -27,10 +27,6 @@ float ridgeNoise(Vector p, int octaves, float lacunarity, float gain, float scal
 	return 1.0f - billowNoise(p, octaves, lacunarity, gain, scale);
 }
 
-float randRange(float min, float max){
-    return min + (max - min) * ((float)rand() / RAND_MAX);
-}
-
 float warpedNoise(Vector warp, float warpScale, Vector p, int octaves, float lacunarity, float persistence, float scale){
     Vector offset = Vector(perlinNoise(p, octaves, lacunarity, persistence, scale), 
             perlinNoise(p + warp, octaves, lacunarity, persistence, scale));
