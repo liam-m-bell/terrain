@@ -35,7 +35,7 @@ public:
 	  return sqrt(lengthSquared());
 	}
 
-	Vector operator+(const Vector& v){
+	Vector operator+(const Vector v){
 		Vector result;
 		result.x = this->x + v.x;
 		result.y = this->y + v.y;
@@ -44,10 +44,14 @@ public:
 	}
 
 	Vector operator-(){
-	  return Vector(-this->x, -this->y, -this->z);
+		Vector result;
+		result.x = -this->x;
+		result.y = -this->y;
+		result.z = -this->z;
+		return result;
 	}
 
-	Vector operator*(double& scalar){
+	Vector operator*(double scalar){
 		Vector result;
 		result.x = scalar * this->x;
 		result.y = scalar * this->y;
@@ -55,7 +59,7 @@ public:
 		return result;
 	}
 
-	friend Vector operator-(const Vector& a, const Vector& b){
+	friend Vector operator-(Vector a, Vector b){
 		Vector result;
 		result.x = a.x - b.x;
 		result.y = a.y - b.y;
@@ -63,7 +67,7 @@ public:
 		return result;
 	}
 
-	friend Vector operator*(const double scalar, const Vector &v){
+	friend Vector operator*(double scalar, Vector v){
 	  Vector result;
 	  result.x = scalar * v.x;
 	  result.y = scalar * v.y;

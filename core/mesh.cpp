@@ -3,6 +3,7 @@
 
 #include "mesh.h"
 
+// Create a triangle from three vertex indicies
 Triangle makeTriangle(unsigned int a, unsigned int b, unsigned int c){
     Triangle t;
     t.v0 = a;
@@ -11,11 +12,13 @@ Triangle makeTriangle(unsigned int a, unsigned int b, unsigned int c){
     return t;
 }
 
+// Adds a vertex to a mesh
 void addVertexToMesh(Mesh *mesh, double x, double y, double z){
     mesh->vertices[mesh->vertexCount] = Vector(x, y, z);
     (mesh->vertexCount)++;
 }
 
+// Adds a face to a mesh
 void addFaceToMesh(Mesh *mesh, unsigned int a, unsigned int b, unsigned int c){
     mesh->faces[mesh->faceCount] = makeTriangle(a, b, c);
     (mesh->faceCount)++;
@@ -33,7 +36,7 @@ Mesh *createMeshFromHeightfield(double **heightfield, const int size){
     int faceCount = 2 * (size - 1) * (size - 1) + 4 * 2 * (size - 1) + 2;
     mesh->faces = (Triangle*)malloc(faceCount * sizeof(Triangle));
 
-    // Terrain mesh
+    // Create verticies for every cell in the heightfield
     for (int z = 0; z < size; ++z){
         for (int x = 0; x < size; x++) {
             double elevation = heightfield[z][x];
@@ -41,6 +44,7 @@ Mesh *createMeshFromHeightfield(double **heightfield, const int size){
         }
     }
 
+    // Create pairs of triangles between each of the verticies to create a tesselation
     for (int z = 0; z < size - 1; z++) {
         for (int x = 0; x < size - 1; x++) {
             int i = size * z + x;
@@ -49,7 +53,7 @@ Mesh *createMeshFromHeightfield(double **heightfield, const int size){
         }
     }
 
-    // Sides
+    // Add cut-out sides to the mesh
     int i = mesh->vertexCount;
     int baseTopLeft = size * size;
     int baseTopRight = baseTopLeft + size - 1;
@@ -105,14 +109,14 @@ Mesh *createMeshFromHeightfield(double **heightfield, const int size){
         i++;
     }
 
-    // Base
+    // Create base of mesh with two triangles
     addFaceToMesh(mesh, baseTopLeft, baseTopRight, baseBottomRight);
     addFaceToMesh(mesh, baseTopLeft, baseBottomRight, baseBottomLeft);
 
     return mesh;
 }
 
-// Export mesh as OBJ file
+// Export mesh as OBJ (Wavefront) file at a specfified file path
 void exportMeshAsObj(Mesh *mesh, const char *filename){
     Vector *vertices = mesh->vertices;
     Triangle *faces = mesh->faces;
@@ -123,12 +127,12 @@ void exportMeshAsObj(Mesh *mesh, const char *filename){
         return;
     }
 
-    // Vertices
+    // Write vertices
     for (int i = 0; i < mesh->vertexCount; i++) {
         fprintf(objFile, "v %f %f %f\n", vertices[i].x, vertices[i].y, vertices[i].z);
     }
 
-    // Faces
+    // Write faces
     for (int i = 0; i < mesh->faceCount; i++) {
         fprintf(objFile, "f %d %d %d\n", faces[i].v0 + 1, faces[i].v1 + 1, faces[i].v2 + 1);
     }
@@ -136,6 +140,7 @@ void exportMeshAsObj(Mesh *mesh, const char *filename){
     fclose(objFile);
 }
 
+// Frees the memory for a mesh
 void freeMesh(Mesh *mesh){
     free(mesh->vertices);
     free(mesh->faces);

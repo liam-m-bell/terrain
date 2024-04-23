@@ -1,17 +1,14 @@
-#include "stream_graph.h"
-#include "../core/vector.h"
-#include "delaunay/CDT.h"
-#include "poisson_disk_sampling.h"
 #include <iostream>
 #include <queue>
-#include <chrono>
-#include <map>
-#include <stdint.h>
-#include <utility>
 #include <math.h>
 
+#include "stream_graph.h"
+
+#include "../core/vector.h"
 #include "../core/noise.h"
 #include "../core/heightfield.h"
+#include "poisson_disk_sampling.h"
+#include "delaunay/CDT.h"
 
 Vector circumcentreOfTriangle(Vector a, Vector b, Vector c){
     double t = a.lengthSquared() - b.lengthSquared();
@@ -40,32 +37,32 @@ double StreamGraph::getRainfall(Vector p){
     return 1.0f;
 }
 
+// Initialise the stream graph
 void StreamGraph::initialise(int nodeCount, double m, double n, double k, double convergenceThreshold, double minimumTalusAngle, double maximumTalusAngle){
     // Sample points for stream nodes using poisson disk samping
     // double radius = (double)terrainSize / sqrt((double)nodeCount);
     // std::vector<Vector> points = poissonDiskSampling(radius, Vector(terrainSize, terrainSize));
 
-    // Input parameter
+    // Input parameters for possion disk sampling
     auto kRadius = (double)terrainSize / sqrt((double)nodeCount * 1.62f);
     auto kXMin = std::array<double, 2>{{0.0f, 0.0f}};
     auto kXMax = std::array<double, 2>{{(double)terrainSize, (double)terrainSize}};
 
-    // Samples returned as std::vector<std::array<double, 2>>.
-    // Default seed and max sample attempts.
     std::vector<Vector> points;
-
     for (auto p : thinks::PoissonDiskSampling(kRadius, kXMin, kXMax)){
         points.push_back(Vector(p[0], p[1]));
     }
 
+    // Initialise each node
     for (Vector v : points){
         double uplift = getUplift(v);
         double height = 0.05f * fabs(warpedNoise(Vector(5.2f, 1.3f), 0.0f, Vector(v.x / (double)terrainSize, v.y / (double)terrainSize), 5, 2.0f, 0.5f, 40.0f));
         double talusAngle = (M_PI / 180.0f) * minimumTalusAngle + 1.25 * fabs(perlinNoise(Vector(v.x / (double)terrainSize, v.y / (double)terrainSize), 5, 2.0f, 0.5f, 1.0f));
         double rainfall = getRainfall(v);
         nodes.push_back(StreamNode(v.x, v.y, height, uplift, m, n, k, convergenceThreshold, talusAngle, rainfall));
-    }   
+    }
 
+    // Perform Delaunay Triangulation
     CDT::Triangulation<double> cdt;
     cdt.insertVertices(
         points.begin(),
@@ -84,6 +81,8 @@ void StreamGraph::initialise(int nodeCount, double m, double n, double k, double
             continue;
         }
 
+        // Add nodes to graph, and add edges, if not already present
+
         nodes[tri.vertices[1]].addEdge(&nodes[tri.vertices[0]]);
         if (nodes[tri.vertices[0]].addEdge(&nodes[tri.vertices[1]])){
             edges.push_back(std::make_tuple(tri.vertices[0], tri.vertices[1]));
@@ -99,10 +98,13 @@ void StreamGraph::initialise(int nodeCount, double m, double n, double k, double
             edges.push_back(std::make_tuple(tri.vertices[1], tri.vertices[2]));
         }
 
+        // Create triangles
         Triangle face = {(unsigned int)tri.vertices[0], (unsigned int)tri.vertices[1], (unsigned int)tri.vertices[2]};
         triangles.push_back(face);
     }
 
+
+    // Define which nodes are outflows from the terrain (the boundary nodes)
     for (int i = 0; i < nodes.size(); i++){
         if (nodes[i].boundaryNode){
             continue;
@@ -126,18 +128,12 @@ void StreamGraph::initialise(int nodeCount, double m, double n, double k, double
     std::cout.flush();
 }
 
+// Calculates the area of the triangle of three points.
 double areaOfTriangle(Vector a, Vector b, Vector c){
     return fabs(a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y)) / 2;
 }
 
 void StreamGraph::voronoiTessellation(){
-    // For each triangle:
-        
-        // For each node in triangle:
-            // Calculate perpendicular bisectors
-            //Calculate area of quad (two triangles)
-            // Add this to node's area
-
     for (Triangle tri : triangles){
         // Calculate circumcentre of triangle
         Vector circumcentre = circumcentreOfTriangle(nodes[tri.v0].position, nodes[tri.v1].position, nodes[tri.v2].position);
@@ -185,6 +181,7 @@ void StreamGraph::createStreamTrees(){
             }
         }
 
+        // Create connection with lowest node
         if (lowest != 0){
             node->downstreamNode = lowest;
             lowest->upstreamNodes.push_back(node);
@@ -257,6 +254,7 @@ void StreamGraph::calculatePasses(){
             continue;
         }
 
+        // Check if potential pass is the lowest between the nodes, and update if it is.
         bool isPass = true;
         for (int j = 0; j < passes.size(); j++){
             LakeEdge p = passes[j];
@@ -379,6 +377,7 @@ Mesh* StreamGraph::createMesh(){
     return mesh;
 }
 
+// Creates a heightfield from the stream graph, using gaussian filters
 double** StreamGraph::createHightfield(double precision, double sigma, double *maxHeight){
     int arraySize = (int)(terrainSize / precision);
     double **heightfield = createHeightfield(arraySize);
@@ -386,6 +385,7 @@ double** StreamGraph::createHightfield(double precision, double sigma, double *m
 
     int range = (int)(4.0f * sigma);
 
+    // Sum the gaussian kernels * height on the heightfield
     for (int n = 0; n < nodes.size(); n++){
         int nodeX = (int)(nodes[n].position.x / precision);
         int nodeZ = (int)(nodes[n].position.y / precision);
@@ -400,13 +400,13 @@ double** StreamGraph::createHightfield(double precision, double sigma, double *m
         }
     }
 
-    // Normalise
+    // Normalise by the kernel sum
     double max = 0.0f;
     for (int i = 0; i < arraySize; i++) {
         for (int j = 0; j < arraySize; j++) {
             heightfield[i][j] /= kernelSum[i][j];
             if (heightfield[i][j] > max){
-                max= heightfield[i][j];
+                max = heightfield[i][j];
             }
         }
     }

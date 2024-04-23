@@ -1,4 +1,5 @@
-//https://rosettacode.org/wiki/Perlin_noise
+// This code is adapted from the original Java Code by Ken Perlin (2002)
+// Which can be found here: https://cs.nyu.edu/~perlin/noise/
 
 #include<stdlib.h>
 #include<stdio.h>

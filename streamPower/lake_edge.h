@@ -2,7 +2,6 @@
 #define LAKE_EDGE_H_
 
 #include <vector>
-#include <tuple>
 
 #include "stream_node.h"
 #include "lake_node.h"

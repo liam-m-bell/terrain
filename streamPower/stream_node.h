@@ -29,6 +29,10 @@ public:
 
     LakeNode *lakeNode;
 
+    StreamNode(){
+        
+	}
+
     StreamNode(double x, double y, double height, double uplift, double m, double n, double k, double convergenceThreshold, double talusAngle, double rainfall){
         this->position = Vector(x, y);
         this->height = height;
@@ -40,11 +44,6 @@ public:
         this->talusAngle = talusAngle;
         this->rainfall = rainfall;
     }
-
-    StreamNode()
-	{
-        
-	}
 
     bool addEdge(StreamNode *node);
     double calculateDrainageArea();

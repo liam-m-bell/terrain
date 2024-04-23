@@ -1,5 +1,6 @@
 #include "stream_node.h"
 
+// Add an edge to the stream graph
 bool StreamNode::addEdge(StreamNode *node){
     for (int i = 0; i < neighbours.size(); i++){
         if (neighbours[i] == node){
@@ -36,11 +37,12 @@ void StreamNode::addToLake(LakeNode *lakeNode){
 bool StreamNode::update(double dt){
     double newHeight = height;
     if (downstreamNode != 0){
+        // Apply the 
         double horizontalDistance = (position - downstreamNode->position).length();
         newHeight = (height + dt * (uplift + erosionConstant * pow(drainageArea, m) * downstreamNode->height / horizontalDistance)) /
                         (1 + erosionConstant * pow(drainageArea, m) * dt / horizontalDistance);
 
-        // Thermal erosion
+        // Apply correction based on thermal erosion
         double maxSlope = tan(talusAngle);
         double slope = (newHeight - downstreamNode->height) / horizontalDistance;
         if (slope > maxSlope){
@@ -61,5 +63,6 @@ bool StreamNode::update(double dt){
     double hightDifference = fabs(newHeight - height) / height;
     height = newHeight;
 
+    // Check for convergence of this node, and its children
     return childrenConverged && (hightDifference < convergenceThreshold);
 }   

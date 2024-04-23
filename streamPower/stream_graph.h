@@ -29,6 +29,10 @@ public:
 
     std::vector<LakeNode*> lakeGraph;
 
+    StreamGraph(){
+
+    }
+
     StreamGraph(int terrainSize, double timeStep, double **upliftField, int upliftFieldSize, bool variableRainfall, double **rainfallField, int rainfallFieldSize){
         this->terrainSize = terrainSize;
         this->timeStep = timeStep;
@@ -39,10 +43,6 @@ public:
         this->rainfallFieldSize = rainfallFieldSize;
     }
 
-    StreamGraph(){
-
-    }
-    
     void initialise(int nodeCount, double m, double n, double k, double convergenceThreshold, double minimumTalusAngle, double maximumTalusAngle);
     double getUplift(Vector p);
     void voronoiTessellation();
