@@ -1,6 +1,6 @@
 #include "lake_edge.h"
 
-LakeEdge::LakeEdge(StreamNode *n1, StreamNode *n2, float height){
+LakeEdge::LakeEdge(StreamNode *n1, StreamNode *n2, double height){
     passNode1 = n1;
     passNode2 = n2;
     passHeight = height;

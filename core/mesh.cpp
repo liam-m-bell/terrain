@@ -11,7 +11,7 @@ Triangle makeTriangle(unsigned int a, unsigned int b, unsigned int c){
     return t;
 }
 
-void addVertexToMesh(Mesh *mesh, float x, float y, float z){
+void addVertexToMesh(Mesh *mesh, double x, double y, double z){
     mesh->vertices[mesh->vertexCount] = Vector(x, y, z);
     (mesh->vertexCount)++;
 }
@@ -22,7 +22,7 @@ void addFaceToMesh(Mesh *mesh, unsigned int a, unsigned int b, unsigned int c){
 }
 
 // Create a mesh from a heightfield
-Mesh *createMeshFromHeightfield(float **heightfield, const int size){
+Mesh *createMeshFromHeightfield(double **heightfield, const int size){
     Mesh *mesh = (Mesh*)malloc(sizeof(Mesh));
     mesh->vertexCount = 0;
     mesh->faceCount = 0;
@@ -36,7 +36,7 @@ Mesh *createMeshFromHeightfield(float **heightfield, const int size){
     // Terrain mesh
     for (int z = 0; z < size; ++z){
         for (int x = 0; x < size; x++) {
-            float elevation = heightfield[z][x];
+            double elevation = heightfield[z][x];
             addVertexToMesh(mesh, x, elevation, z);
         }
     }

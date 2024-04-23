@@ -1,6 +1,6 @@
 #ifndef NOISE_HEIGHTFIELD_H_
 #define NOISE_HEIGHTFIELD_H_
 
-void generateHeightfieldFromNoise(float** heightfield, int size, int octaves, float lacunarity, float persistence, float scale, float height);
+void generateHeightfieldFromNoise(double** heightfield, int size, int octaves, double lacunarity, double persistence, double scale, double height);
 
 #endif

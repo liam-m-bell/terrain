@@ -7,19 +7,19 @@
 
 class StreamNode : public Node{
 public:
-    float m;
-    float n;
-    float erosionConstant;
-    float convergenceThreshold;
-    float talusAngle;
+    double m;
+    double n;
+    double erosionConstant;
+    double convergenceThreshold;
+    double talusAngle;
 
     Vector position;
-    float height;
-    float uplift;
+    double height;
+    double uplift;
 
-    float rainfall;
-    float voronoiArea = 0;
-    float drainageArea;
+    double rainfall;
+    double voronoiArea = 0;
+    double drainageArea;
 
     bool boundaryNode = false;
     std::vector<int> edgeShareCount;
@@ -29,7 +29,7 @@ public:
 
     LakeNode *lakeNode;
 
-    StreamNode(float x, float y, float height, float uplift, float m, float n, float k, float convergenceThreshold, float talusAngle, float rainfall){
+    StreamNode(double x, double y, double height, double uplift, double m, double n, double k, double convergenceThreshold, double talusAngle, double rainfall){
         this->position = Vector(x, y);
         this->height = height;
         this->uplift = uplift;
@@ -47,9 +47,9 @@ public:
 	}
 
     bool addEdge(StreamNode *node);
-    float calculateDrainageArea();
+    double calculateDrainageArea();
     void addToLake(LakeNode *lakeNode);
-    bool update(float dt);
+    bool update(double dt);
 };
 
 #endif

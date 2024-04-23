@@ -14,43 +14,43 @@
 #include "../core/heightfield.h"
 
 Vector circumcentreOfTriangle(Vector a, Vector b, Vector c){
-    float t = a.lengthSquared() - b.lengthSquared();
-    float u = a.lengthSquared() - c.lengthSquared();
-    float J = ((a.x - b.x) * (a.y - c.y) - ((a.x - c.x) * (a.y - b.y))) * 2.0f;
+    double t = a.lengthSquared() - b.lengthSquared();
+    double u = a.lengthSquared() - c.lengthSquared();
+    double J = ((a.x - b.x) * (a.y - c.y) - ((a.x - c.x) * (a.y - b.y))) * 2.0f;
 
-    float x = (-(a.y - b.y) * u + (a.y - c.y) * t) / J;
-    float y = ((a.x - b.x) * u - (a.x - c.x) * t) / J;
+    double x = (-(a.y - b.y) * u + (a.y - c.y) * t) / J;
+    double y = ((a.x - b.x) * u - (a.x - c.x) * t) / J;
     return Vector(x, y);
 }
 
-float StreamGraph::getUplift(Vector p){
-    Vector upliftIndex = ((float)upliftFieldSize / (float)terrainSize) * p;
-    float uplift = upliftField[(int)upliftIndex.x][(int)(upliftIndex.y)];
+double StreamGraph::getUplift(Vector p){
+    Vector upliftIndex = ((double)upliftFieldSize / (double)terrainSize) * p;
+    double uplift = upliftField[(int)upliftIndex.x][(int)(upliftIndex.y)];
     return uplift;
-    //return 5.5f * pow(10.0f, -4) * p.x / (float)terrainSize;
+    //return 5.5f * pow(10.0f, -4) * p.x / (double)terrainSize;
 }
 
-float StreamGraph::getRainfall(Vector p){
+double StreamGraph::getRainfall(Vector p){
     if (variableRainfall){
-        Vector rainfallIndex = ((float)rainfallFieldSize / (float)terrainSize) * p;
-        float rainfall = rainfallField[(int)rainfallIndex.x][(int)(rainfallIndex.y)];
+        Vector rainfallIndex = ((double)rainfallFieldSize / (double)terrainSize) * p;
+        double rainfall = rainfallField[(int)rainfallIndex.x][(int)(rainfallIndex.y)];
         return rainfall;
     }
 
     return 1.0f;
 }
 
-void StreamGraph::initialise(int nodeCount, float m, float n, float k, float convergenceThreshold, float minimumTalusAngle, float maximumTalusAngle){
+void StreamGraph::initialise(int nodeCount, double m, double n, double k, double convergenceThreshold, double minimumTalusAngle, double maximumTalusAngle){
     // Sample points for stream nodes using poisson disk samping
-    // float radius = (float)terrainSize / sqrt((float)nodeCount);
+    // double radius = (double)terrainSize / sqrt((double)nodeCount);
     // std::vector<Vector> points = poissonDiskSampling(radius, Vector(terrainSize, terrainSize));
 
     // Input parameter
-    auto kRadius = (float)terrainSize / sqrt((float)nodeCount * 1.62f);
-    auto kXMin = std::array<float, 2>{{0.0f, 0.0f}};
-    auto kXMax = std::array<float, 2>{{(float)terrainSize, (float)terrainSize}};
+    auto kRadius = (double)terrainSize / sqrt((double)nodeCount * 1.62f);
+    auto kXMin = std::array<double, 2>{{0.0f, 0.0f}};
+    auto kXMax = std::array<double, 2>{{(double)terrainSize, (double)terrainSize}};
 
-    // Samples returned as std::vector<std::array<float, 2>>.
+    // Samples returned as std::vector<std::array<double, 2>>.
     // Default seed and max sample attempts.
     std::vector<Vector> points;
 
@@ -59,14 +59,14 @@ void StreamGraph::initialise(int nodeCount, float m, float n, float k, float con
     }
 
     for (Vector v : points){
-        float uplift = getUplift(v);
-        float height = 0.05f * fabs(warpedNoise(Vector(5.2f, 1.3f), 0.0f, Vector(v.x / (float)terrainSize, v.y / (float)terrainSize), 5, 2.0f, 0.5f, 40.0f));
-        float talusAngle = (M_PI / 180.0f) * minimumTalusAngle + 1.25 * fabs(perlinNoise(Vector(v.x / (float)terrainSize, v.y / (float)terrainSize), 5, 2.0f, 0.5f, 1.0f));
-        float rainfall = getRainfall(v);
+        double uplift = getUplift(v);
+        double height = 0.05f * fabs(warpedNoise(Vector(5.2f, 1.3f), 0.0f, Vector(v.x / (double)terrainSize, v.y / (double)terrainSize), 5, 2.0f, 0.5f, 40.0f));
+        double talusAngle = (M_PI / 180.0f) * minimumTalusAngle + 1.25 * fabs(perlinNoise(Vector(v.x / (double)terrainSize, v.y / (double)terrainSize), 5, 2.0f, 0.5f, 1.0f));
+        double rainfall = getRainfall(v);
         nodes.push_back(StreamNode(v.x, v.y, height, uplift, m, n, k, convergenceThreshold, talusAngle, rainfall));
     }   
 
-    CDT::Triangulation<float> cdt;
+    CDT::Triangulation<double> cdt;
     cdt.insertVertices(
         points.begin(),
         points.end(),
@@ -79,7 +79,7 @@ void StreamGraph::initialise(int nodeCount, float m, float n, float k, float con
     // Create stream graph from triangulation
     for (auto tri : cdt.triangles){
         Vector centre = circumcentreOfTriangle(nodes[tri.vertices[0]].position, nodes[tri.vertices[1]].position, nodes[tri.vertices[2]].position);
-        if (centre.x <= 0.0f || centre.y <= 0.0f || centre.x > (float)terrainSize || centre.y > (float)terrainSize){
+        if (centre.x <= 0.0f || centre.y <= 0.0f || centre.x > (double)terrainSize || centre.y > (double)terrainSize){
             //Exclude if centre outside of terrain boundary
             continue;
         }
@@ -126,7 +126,7 @@ void StreamGraph::initialise(int nodeCount, float m, float n, float k, float con
     std::cout.flush();
 }
 
-float areaOfTriangle(Vector a, Vector b, Vector c){
+double areaOfTriangle(Vector a, Vector b, Vector c){
     return fabs(a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y)) / 2;
 }
 
@@ -152,7 +152,7 @@ void StreamGraph::voronoiTessellation(){
                     // Calculate midpoint of edge between node and neighbour
                     Vector midpoint = 0.5f * (node->position + neighbour.position);
                     // Calculate area of trianlge formed by node position, neighbour position, and circumcentre of triangle
-                    float area = areaOfTriangle(node->position, midpoint, circumcentre);
+                    double area = areaOfTriangle(node->position, midpoint, circumcentre);
                     node->voronoiArea += area;
                 }
             }
@@ -174,7 +174,7 @@ void StreamGraph::createStreamTrees(){
     for (int i = 0; i < nodes.size(); i++){
         StreamNode *node = &(nodes[i]);
         StreamNode *lowest = 0;
-        float lowestHeight = node->height;
+        double lowestHeight = node->height;
         
         // Find lowest neighbour to become downstream node
         for (Node *n : node->neighbours){
@@ -262,7 +262,7 @@ void StreamGraph::calculatePasses(){
             LakeEdge p = passes[j];
             if ((p.lake1 == node1->lakeNode && p.lake2 == node2->lakeNode) || (p.lake1 == node2->lakeNode && p.lake2 == node1->lakeNode)){
                 isPass = false;
-                float height = std::max(node1->height, node2->height);
+                double height = std::max(node1->height, node2->height);
                 if (height < p.passHeight){
                     isPass = true;
                     passes.erase(passes.begin() + j);
@@ -275,7 +275,7 @@ void StreamGraph::calculatePasses(){
             // Add connection in lake graph
             node1->lakeNode->addEdge(node2->lakeNode);
             node2->lakeNode->addEdge(node1->lakeNode);
-            float passHeight = std::max(node1->height, node2->height);
+            double passHeight = std::max(node1->height, node2->height);
             passes.push_back(LakeEdge(node1, node2, passHeight));
         }
     }
@@ -379,10 +379,10 @@ Mesh* StreamGraph::createMesh(){
     return mesh;
 }
 
-float** StreamGraph::createHightfield(float precision, float sigma, float *maxHeight){
+double** StreamGraph::createHightfield(double precision, double sigma, double *maxHeight){
     int arraySize = (int)(terrainSize / precision);
-    float **heightfield = createHeightfield(arraySize);
-    float **kernelSum = createHeightfield(arraySize);
+    double **heightfield = createHeightfield(arraySize);
+    double **kernelSum = createHeightfield(arraySize);
 
     int range = (int)(4.0f * sigma);
 
@@ -401,7 +401,7 @@ float** StreamGraph::createHightfield(float precision, float sigma, float *maxHe
     }
 
     // Normalise
-    float max = 0.0f;
+    double max = 0.0f;
     for (int i = 0; i < arraySize; i++) {
         for (int j = 0; j < arraySize; j++) {
             heightfield[i][j] /= kernelSum[i][j];

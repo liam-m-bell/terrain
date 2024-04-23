@@ -8,20 +8,20 @@
 #include "../core/mesh.h"
 
 Vector circumcentreOfTriangle(Vector a, Vector b, Vector c);
-float areaOfTriangle(Vector a, Vector b, Vector c);
+double areaOfTriangle(Vector a, Vector b, Vector c);
 
 class StreamGraph{
 public:
     int terrainSize;
 
-    float **upliftField;
+    double **upliftField;
     int upliftFieldSize;
 
     bool variableRainfall;
-    float **rainfallField;
+    double **rainfallField;
     int rainfallFieldSize;
 
-    float timeStep;
+    double timeStep;
 
     std::vector<StreamNode> nodes;
     std::vector<Triangle> triangles;
@@ -29,7 +29,7 @@ public:
 
     std::vector<LakeNode*> lakeGraph;
 
-    StreamGraph(int terrainSize, float timeStep, float **upliftField, int upliftFieldSize, bool variableRainfall, float **rainfallField, int rainfallFieldSize){
+    StreamGraph(int terrainSize, double timeStep, double **upliftField, int upliftFieldSize, bool variableRainfall, double **rainfallField, int rainfallFieldSize){
         this->terrainSize = terrainSize;
         this->timeStep = timeStep;
         this->upliftField = upliftField;
@@ -43,17 +43,17 @@ public:
 
     }
     
-    void initialise(int nodeCount, float m, float n, float k, float convergenceThreshold, float minimumTalusAngle, float maximumTalusAngle);
-    float getUplift(Vector p);
+    void initialise(int nodeCount, double m, double n, double k, double convergenceThreshold, double minimumTalusAngle, double maximumTalusAngle);
+    double getUplift(Vector p);
     void voronoiTessellation();
     void createStreamTrees();
     bool update();
     void calculatePasses();
 
     Mesh *createMesh();
-    float **createHightfield(float precision, float sigma, float *maxHeight);
+    double **createHightfield(double precision, double sigma, double *maxHeight);
 
-    float getRainfall(Vector p);
+    double getRainfall(Vector p);
 };
 
 #endif

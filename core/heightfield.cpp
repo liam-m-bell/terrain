@@ -5,17 +5,17 @@
 #include <sstream>
 
 // Allocates memory for a heightfield
-float **createHeightfield(const int size){
-    float **a = (float**)malloc(size * sizeof(float*));
+double **createHeightfield(const int size){
+    double **a = (double**)malloc(size * sizeof(double*));
     for (int i = 0; i < size; i++){
-        a[i] = (float*)calloc(size, sizeof(float));
+        a[i] = (double*)calloc(size, sizeof(double));
     }
 
     return a;
 }
 
 // Deallocates memory for a heightfield
-void freeHeightfield(float **a, const int size){
+void freeHeightfield(double **a, const int size){
     for (int i = 0; i < size; i++){
         free(a[i]);
     }
@@ -23,7 +23,7 @@ void freeHeightfield(float **a, const int size){
 }
 
 // Outputs a heightfield as a ppm image file to a specified file path
-void outputHeightfieldAsImage(float **a, const int size, const float maxHeight, char *filename){
+void outputHeightfieldAsImage(double **a, const int size, const double maxHeight, char *filename){
     // Adapted from https://rosettacode.org/wiki/Bitmap/Write_a_PPM_file
     FILE *imageFile = fopen(filename, "wb");
     fprintf(imageFile, "P6\n%d %d\n255\n", size, size);
@@ -47,7 +47,7 @@ void outputHeightfieldAsImage(float **a, const int size, const float maxHeight, 
 }
 
 // Imports a heightfield as a ppm image file
-float **importImageAsHeightfield(char *filename, int *terrainSize, const float maxHeight){
+double **importImageAsHeightfield(char *filename, int *terrainSize, const double maxHeight){
     std::ifstream imageFile(filename);
     
     std::string lineString;
@@ -74,12 +74,12 @@ float **importImageAsHeightfield(char *filename, int *terrainSize, const float m
     }
 
     int size = width;
-    float **heightfield = createHeightfield(size);
+    double **heightfield = createHeightfield(size);
 
     // Get maximum colour value (normally 255)
     std::getline(imageFile, lineString);
     std::istringstream maxValueString(lineString);
-    float maxImageValue;
+    double maxImageValue;
     maxValueString >> maxImageValue;
 
     // Read pixels from file (as RGB, but only looking at Red channel, as R=G=B for greyscale images)
@@ -87,11 +87,11 @@ float **importImageAsHeightfield(char *filename, int *terrainSize, const float m
     for (int i = 0; i < size * size; i++) {
         std::getline(imageFile, lineString);
         std::istringstream valueString(lineString);
-        float value;
+        double value;
         valueString >> value;
 
         // Convert colour value to height value
-        float height = value * maxHeight / maxImageValue;
+        double height = value * maxHeight / maxImageValue;
         heightfield[i / size][i % size] = height;
         std::getline(imageFile, lineString);
         std::getline(imageFile, lineString);

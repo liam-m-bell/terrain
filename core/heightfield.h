@@ -1,9 +1,9 @@
 #ifndef HEIGHTFIELD_H_
 #define HEIGHTFIELD_H_
 
-float **createHeightfield(const int size);
-void freeHeightfield(float **a, const int size);
-void outputHeightfieldAsImage(float **a, const int size, const float maxHeight, char *filename);
-float **importImageAsHeightfield(char *filename, int *size, const float maxHeight);
+double **createHeightfield(const int size);
+void freeHeightfield(double **a, const int size);
+void outputHeightfieldAsImage(double **a, const int size, const double maxHeight, char *filename);
+double **importImageAsHeightfield(char *filename, int *size, const double maxHeight);
 
 #endif

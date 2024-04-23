@@ -7,12 +7,12 @@ void loadNoisePermutation(char* fileName);
 double noise3D(double x, double y, double z);
 double noise2D(double x, double y);
 
-float perlinNoise(Vector p, int octaves, float lacunarity, float persistence, float scale);
-float billowNoise(Vector p, int octaves, float lacunarity, float persistence, float scale);
-float ridgeNoise(Vector p, int octaves, float lacunarity, float persistence, float scale);
+double perlinNoise(Vector p, int octaves, double lacunarity, double persistence, double scale);
+double billowNoise(Vector p, int octaves, double lacunarity, double persistence, double scale);
+double ridgeNoise(Vector p, int octaves, double lacunarity, double persistence, double scale);
 
-float warpedNoise(Vector warp, float warpScale, Vector p, int octaves, float lacunarity, float persistence, float scale);
+double warpedNoise(Vector warp, double warpScale, Vector p, int octaves, double lacunarity, double persistence, double scale);
 
-float randRange(float min, float max);
+double randRange(double min, double max);
 
 #endif

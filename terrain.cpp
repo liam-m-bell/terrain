@@ -13,9 +13,9 @@
 
 #include "streamPower/stream_graph.h"
 
-void generateImageFrame(StreamGraph *sg, int iteration, char* heightfieldFilename, int terrainSize, float resolution, float standardDev){
-    float maxHeight;
-    float **heightfield = sg->createHightfield(resolution, standardDev, &maxHeight);
+void generateImageFrame(StreamGraph *sg, int iteration, char* heightfieldFilename, int terrainSize, double resolution, double standardDev){
+    double maxHeight;
+    double **heightfield = sg->createHightfield(resolution, standardDev, &maxHeight);
     std::string filenameString = heightfieldFilename;
     filenameString.append(std::to_string(iteration));
     filenameString.append(".ppm");
@@ -56,27 +56,27 @@ int main(int argc, char *argv[]){
     int nodeCount = atoi(getArg(argc, argv, (char*)"-nodeCount")); // Approximate number of points to sample in the terrain
 
     // Stream power equation
-    float m = atof(getArg(argc, argv, (char*)"-m")); // Drainage area constant
-    float n = atof(getArg(argc, argv, (char*)"-n")); // Slope constant
-    float k = atof(getArg(argc, argv, (char*)"-k")); // Erosion constant
+    double m = atof(getArg(argc, argv, (char*)"-m")); // Drainage area constant
+    double n = atof(getArg(argc, argv, (char*)"-n")); // Slope constant
+    double k = atof(getArg(argc, argv, (char*)"-k")); // Erosion constant
 
     // Simulation iteration
-    float timeStep = atof(getArg(argc, argv, (char*)"-timeStep")); // Simulation time step
+    double timeStep = atof(getArg(argc, argv, (char*)"-timeStep")); // Simulation time step
     int maxTimeSteps = atoi(getArg(argc, argv, (char*)"-maxTimeSteps")); //Maximum number of time steps to run before stopping
-    float convergenceThreshold = atof(getArg(argc, argv, (char*)"-convergenceThreshold")); // Value to determine if simulation can stop before max time steps
+    double convergenceThreshold = atof(getArg(argc, argv, (char*)"-convergenceThreshold")); // Value to determine if simulation can stop before max time steps
 
     // Uplift
-    float maximumUplift = atof(getArg(argc, argv, (char*)"-maximumUplift")); // Maximum value of the uplift to control height of mountains
+    double maximumUplift = atof(getArg(argc, argv, (char*)"-maximumUplift")); // Maximum value of the uplift to control height of mountains
     char *upliftFieldFilename = getArg(argc, argv, (char*)"-upliftFieldFilename"); // Filename of ppm image file which contains the uplift field
 
     // Thermal erosion
-    float minimumTalusAngle = atof(getArg(argc, argv, (char*)"-minimumTalusAngle")); // Minium thermal erosion talus angle
-    float maximumTalusAngle = atof(getArg(argc, argv, (char*)"-maximumTalusAngle")); // Maximum thermal erosion talus angle
+    double minimumTalusAngle = atof(getArg(argc, argv, (char*)"-minimumTalusAngle")); // Minium thermal erosion talus angle
+    double maximumTalusAngle = atof(getArg(argc, argv, (char*)"-maximumTalusAngle")); // Maximum thermal erosion talus angle
     char *perlinNoiseDataFilename = getArg(argc, argv, (char*)"-perlinNoiseDataFilename"); //Filename of perlin noise seed data
 
     // Rainfall
     bool variableRainfall = hasArg(argc, argv, (char*)"-variableRainfall");
-    float maximumRainfall = atof(getArg(argc, argv, (char*)"-maximumRainfall")); // Maximum value of the rainfall
+    double maximumRainfall = atof(getArg(argc, argv, (char*)"-maximumRainfall")); // Maximum value of the rainfall
     char *rainfallFieldFilename = getArg(argc, argv, (char*)"-rainfallFieldFilename"); // Filename of ppm image file which contains the rainfall field
 
     // Ouput mesh
@@ -86,8 +86,8 @@ int main(int argc, char *argv[]){
     // Output heightfield
     bool generateHeightfield = hasArg(argc, argv, (char*)"-generateHeightfield"); // Should heightfield be generated
     char* heightfieldFilename = getArg(argc, argv, (char*)"-heightfieldFilename"); // Filename to write heightfield ppm image file to
-    float heightfieldResolution = atof(getArg(argc, argv, (char*)"-heightfieldResolution")); // Resolution of heightfield
-    float heightfieldStandardDeviation = atof(getArg(argc, argv, (char*)"-heightfieldStandardDeviation")); // Standard deviation of gaussian filter for heightfield generation
+    double heightfieldResolution = atof(getArg(argc, argv, (char*)"-heightfieldResolution")); // Resolution of heightfield
+    double heightfieldStandardDeviation = atof(getArg(argc, argv, (char*)"-heightfieldStandardDeviation")); // Standard deviation of gaussian filter for heightfield generation
     bool generateHeightfieldMesh = hasArg(argc, argv, (char*)"-generateHeightfieldMesh");// Should heightfield mesh be generated
     char* heightfieldMeshFilename = getArg(argc, argv, (char*)"-heightfieldMeshFilename"); // Filename to write heightfield mesh file to
     bool generateImageSequence = hasArg(argc, argv, (char*)"-generateImageSequence"); //Should heightfield image sequence be generated
@@ -99,11 +99,11 @@ int main(int argc, char *argv[]){
 
     // Import uplift
     int upliftFieldSize;
-    float **upliftField = importImageAsHeightfield(upliftFieldFilename, &upliftFieldSize, maximumUplift);
+    double **upliftField = importImageAsHeightfield(upliftFieldFilename, &upliftFieldSize, maximumUplift);
 
     // Import rainfall
      int rainfallFieldSize;
-    float **rainfallField = importImageAsHeightfield(rainfallFieldFilename, &rainfallFieldSize, maximumRainfall);
+    double **rainfallField = importImageAsHeightfield(rainfallFieldFilename, &rainfallFieldSize, maximumRainfall);
 
     // Initialise
     StreamGraph sg = StreamGraph(terrainSize, timeStep, upliftField, upliftFieldSize, variableRainfall, rainfallField, rainfallFieldSize);
@@ -130,7 +130,7 @@ int main(int argc, char *argv[]){
     }
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-    std::cout << "\nTime elapsed: " << (float)duration.count() / 1000000 << "s\n";
+    std::cout << "\nTime elapsed: " << (double)duration.count() / 1000000 << "s\n";
 
     freeHeightfield(upliftField, upliftFieldSize);
 
@@ -147,8 +147,8 @@ int main(int argc, char *argv[]){
 
     if (generateHeightfield){
         // Generate heightfield and output as image
-        float maxHeight;
-        float **heightfield = sg.createHightfield(heightfieldResolution, heightfieldStandardDeviation, &maxHeight);
+        double maxHeight;
+        double **heightfield = sg.createHightfield(heightfieldResolution, heightfieldStandardDeviation, &maxHeight);
         outputHeightfieldAsImage(heightfield, terrainSize / heightfieldResolution, maxHeight, heightfieldFilename);
 
         if (generateHeightfieldMesh){

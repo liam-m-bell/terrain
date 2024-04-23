@@ -5,17 +5,17 @@
 
 class Vector {
 public:
-	float x;
-	float y;
-	float z;
+	double x;
+	double y;
+	double z;
 
-	Vector(float a, float b, float c){
+	Vector(double a, double b, double c){
 		x = a;
 		y = b;
 		z = c;
 	}
 
-    Vector(float a, float b){
+    Vector(double a, double b){
 		x = a;
 		y = b;
 		z = 0.0f;
@@ -27,11 +27,11 @@ public:
 		z = 0.0f;
 	}
 
-	float lengthSquared(){
+	double lengthSquared(){
 	  return x * x + y * y + z * z ;
 	}
 
-	float length(){
+	double length(){
 	  return sqrt(lengthSquared());
 	}
 
@@ -47,7 +47,7 @@ public:
 	  return Vector(-this->x, -this->y, -this->z);
 	}
 
-	Vector operator*(float& scalar){
+	Vector operator*(double& scalar){
 		Vector result;
 		result.x = scalar * this->x;
 		result.y = scalar * this->y;
@@ -63,7 +63,7 @@ public:
 		return result;
 	}
 
-	friend Vector operator*(const float scalar, const Vector &v){
+	friend Vector operator*(const double scalar, const Vector &v){
 	  Vector result;
 	  result.x = scalar * v.x;
 	  result.y = scalar * v.y;

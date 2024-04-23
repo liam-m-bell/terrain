@@ -15,7 +15,7 @@ enum PassDirection {oneToTwo, twoToOne, none};
 
 class LakeEdge{
 public:
-    float passHeight;
+    double passHeight;
     StreamNode *passNode1;
     StreamNode *passNode2;
 
@@ -29,7 +29,7 @@ public:
         
 	}
 
-    LakeEdge(StreamNode *n1, StreamNode *n2, float height);
+    LakeEdge(StreamNode *n1, StreamNode *n2, double height);
 
     LakeNode *lowerLake();
     LakeNode *higherLake();

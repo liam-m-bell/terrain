@@ -13,8 +13,8 @@ bool StreamNode::addEdge(StreamNode *node){
 }
 
 // Calculate drainage area of stream node recursively
-float StreamNode::calculateDrainageArea(){
-    float area = voronoiArea * rainfall;
+double StreamNode::calculateDrainageArea(){
+    double area = voronoiArea * rainfall;
     for (StreamNode *upstreamNode : upstreamNodes){
         area += upstreamNode->calculateDrainageArea();
     }
@@ -33,16 +33,16 @@ void StreamNode::addToLake(LakeNode *lakeNode){
 }
 
 // Perform the stream power equation update on a node
-bool StreamNode::update(float dt){
-    float newHeight = height;
+bool StreamNode::update(double dt){
+    double newHeight = height;
     if (downstreamNode != 0){
-        float horizontalDistance = (position - downstreamNode->position).length();
+        double horizontalDistance = (position - downstreamNode->position).length();
         newHeight = (height + dt * (uplift + erosionConstant * pow(drainageArea, m) * downstreamNode->height / horizontalDistance)) /
                         (1 + erosionConstant * pow(drainageArea, m) * dt / horizontalDistance);
 
         // Thermal erosion
-        float maxSlope = tan(talusAngle);
-        float slope = (newHeight - downstreamNode->height) / horizontalDistance;
+        double maxSlope = tan(talusAngle);
+        double slope = (newHeight - downstreamNode->height) / horizontalDistance;
         if (slope > maxSlope){
             newHeight = downstreamNode->height + horizontalDistance * maxSlope;
         }
@@ -58,7 +58,7 @@ bool StreamNode::update(float dt){
         childrenConverged = converged && childrenConverged;
     }
 
-    float hightDifference = fabs(newHeight - height) / height;
+    double hightDifference = fabs(newHeight - height) / height;
     height = newHeight;
 
     return childrenConverged && (hightDifference < convergenceThreshold);
