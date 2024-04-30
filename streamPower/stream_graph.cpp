@@ -13,7 +13,7 @@
 Vector circumcentreOfTriangle(Vector a, Vector b, Vector c){
     double t = a.lengthSquared() - b.lengthSquared();
     double u = a.lengthSquared() - c.lengthSquared();
-    double J = ((a.x - b.x) * (a.y - c.y) - ((a.x - c.x) * (a.y - b.y))) * 2.0f;
+    double J = ((a.x - b.x) * (a.y - c.y) - ((a.x - c.x) * (a.y - b.y))) * 2.0;
 
     double x = (-(a.y - b.y) * u + (a.y - c.y) * t) / J;
     double y = ((a.x - b.x) * u - (a.x - c.x) * t) / J;
@@ -24,7 +24,6 @@ double StreamGraph::getUplift(Vector p){
     Vector upliftIndex = ((double)upliftFieldSize / (double)terrainSize) * p;
     double uplift = upliftField[(int)upliftIndex.x][(int)(upliftIndex.y)];
     return uplift;
-    //return 5.5f * pow(10.0f, -4) * p.x / (double)terrainSize;
 }
 
 double StreamGraph::getRainfall(Vector p){
@@ -34,18 +33,18 @@ double StreamGraph::getRainfall(Vector p){
         return rainfall;
     }
 
-    return 1.0f;
+    return 1.0;
 }
 
 // Initialise the stream graph
-void StreamGraph::initialise(int nodeCount, double m, double n, double k, double convergenceThreshold, double minimumTalusAngle, double maximumTalusAngle){
+void StreamGraph::initialise(int nodeCount, double m, double n, double k, double convergenceThreshold, double talusAngle){
     // Sample points for stream nodes using poisson disk samping
     // double radius = (double)terrainSize / sqrt((double)nodeCount);
     // std::vector<Vector> points = poissonDiskSampling(radius, Vector(terrainSize, terrainSize));
 
     // Input parameters for possion disk sampling
-    auto kRadius = (double)terrainSize / sqrt((double)nodeCount * 1.62f);
-    auto kXMin = std::array<double, 2>{{0.0f, 0.0f}};
+    auto kRadius = (double)terrainSize / sqrt((double)nodeCount * 1.62);
+    auto kXMin = std::array<double, 2>{{0.0, 0.0}};
     auto kXMax = std::array<double, 2>{{(double)terrainSize, (double)terrainSize}};
 
     std::vector<Vector> points;
@@ -56,10 +55,9 @@ void StreamGraph::initialise(int nodeCount, double m, double n, double k, double
     // Initialise each node
     for (Vector v : points){
         double uplift = getUplift(v);
-        double height = 0.05f * fabs(warpedNoise(Vector(5.2f, 1.3f), 0.0f, Vector(v.x / (double)terrainSize, v.y / (double)terrainSize), 5, 2.0f, 0.5f, 40.0f));
-        double talusAngle = (M_PI / 180.0f) * minimumTalusAngle + 1.25 * fabs(perlinNoise(Vector(v.x / (double)terrainSize, v.y / (double)terrainSize), 5, 2.0f, 0.5f, 1.0f));
+        double height = 0.01 * fabs(warpedNoise(Vector(5.2, 1.3), 0.0, Vector(v.x / (double)terrainSize, v.y / (double)terrainSize), 5, 2.0, 0.5, 40.0));
         double rainfall = getRainfall(v);
-        nodes.push_back(StreamNode(v.x, v.y, height, uplift, m, n, k, convergenceThreshold, talusAngle, rainfall));
+        nodes.push_back(StreamNode(v.x, v.y, height, uplift, m, n, k, convergenceThreshold, (M_PI / 180) * talusAngle, rainfall));
     }
 
     // Perform Delaunay Triangulation
@@ -76,7 +74,7 @@ void StreamGraph::initialise(int nodeCount, double m, double n, double k, double
     // Create stream graph from triangulation
     for (auto tri : cdt.triangles){
         Vector centre = circumcentreOfTriangle(nodes[tri.vertices[0]].position, nodes[tri.vertices[1]].position, nodes[tri.vertices[2]].position);
-        if (centre.x <= 0.0f || centre.y <= 0.0f || centre.x > (double)terrainSize || centre.y > (double)terrainSize){
+        if (centre.x <= 0.0 || centre.y <= 0.0 || centre.x > (double)terrainSize || centre.y > (double)terrainSize){
             //Exclude if centre outside of terrain boundary
             continue;
         }
@@ -110,11 +108,11 @@ void StreamGraph::initialise(int nodeCount, double m, double n, double k, double
             continue;
         }
         for (int j = 0; j < nodes[i].neighbours.size(); j++){
-            if (nodes[i].edgeShareCount[j] < 2 /* && nodes[i].uplift < 1.0f * pow(10.0f, -4)*/){
+            if (nodes[i].edgeShareCount[j] < 2  && (isIsland || (nodes[i].uplift < 0.33 * maximumUplift))){
                 nodes[i].boundaryNode = true;
                 nodes[i].height = 0.0f;
                 ((StreamNode*)nodes[i].neighbours[j])->boundaryNode = true;
-                ((StreamNode*)nodes[i].neighbours[j])->height = 0.0f;
+                ((StreamNode*)nodes[i].neighbours[j])->height = 0.0;
                 continue;
             } 
         }
@@ -122,10 +120,6 @@ void StreamGraph::initialise(int nodeCount, double m, double n, double k, double
 
     // Calculate voronoi areas for each node
     voronoiTessellation();
-
-    std::cout << "Initialised stream graph\n";
-    std::cout << "Node count: " << nodes.size() << "\n";
-    std::cout.flush();
 }
 
 // Calculates the area of the triangle of three points.
@@ -146,7 +140,7 @@ void StreamGraph::voronoiTessellation(){
                 if (j != i){
                     StreamNode neighbour = nodes[vertexIndicies[j]];
                     // Calculate midpoint of edge between node and neighbour
-                    Vector midpoint = 0.5f * (node->position + neighbour.position);
+                    Vector midpoint = 0.5 * (node->position + neighbour.position);
                     // Calculate area of trianlge formed by node position, neighbour position, and circumcentre of triangle
                     double area = areaOfTriangle(node->position, midpoint, circumcentre);
                     node->voronoiArea += area;
@@ -222,9 +216,6 @@ bool StreamGraph::update(){
     bool allConverged = true;
     for (int i = 0; i < nodes.size(); i++){
         if (nodes[i].boundaryNode){
-        //if (nodes[i].downstreamNode == 0){
-            // Root
-            //printf("Root %d\n", nodes[i].number);
             bool converged = (&nodes[i])->update(timeStep);
             allConverged = converged && allConverged;
         }
@@ -282,7 +273,6 @@ void StreamGraph::calculatePasses(){
     std::priority_queue<LakeEdge*, std::vector<LakeEdge*>, PassCompare> candidates; 
 
     // Remove connections aways from river mouth (no flow upstream)
-    int interiorNodeCount = 0;
     for (int i = 0; i < lakeGraph.size(); i++){
         if (lakeGraph[i]->isRiverMouth){
             for (int j = 0; j < lakeGraph[i]->neighbours.size(); j++){
@@ -302,9 +292,6 @@ void StreamGraph::calculatePasses(){
                 } 
             }
             lakeGraph[i]->neighbours.clear();
-        }
-        else{
-            interiorNodeCount++;
         }
     }
 
@@ -365,7 +352,7 @@ Mesh* StreamGraph::createMesh(){
     mesh->vertexCount = nodes.size();
     mesh->vertices = (Vector*)malloc(mesh->vertexCount * sizeof(Vector));
     for (int i = 0; i < mesh->vertexCount; i++){
-        mesh->vertices[i] = Vector(nodes[i].position.x, nodes[i].height, nodes[i].position.y);
+        mesh->vertices[i] = Vector(nodes[i].position.y, nodes[i].height, nodes[i].position.x);
     }
 
     mesh->faceCount = triangles.size();
@@ -383,7 +370,7 @@ double** StreamGraph::createHightfield(double precision, double sigma, double *m
     double **heightfield = createHeightfield(arraySize);
     double **kernelSum = createHeightfield(arraySize);
 
-    int range = (int)(4.0f * sigma);
+    int range = (int)(4.0 * sigma);
 
     // Sum the gaussian kernels * height on the heightfield
     for (int n = 0; n < nodes.size(); n++){
@@ -415,4 +402,15 @@ double** StreamGraph::createHightfield(double precision, double sigma, double *m
     *maxHeight = max;
 
     return heightfield;
+}
+
+double StreamGraph::getMaxHeight(){
+    double maxHeight = 0.0;
+    for (int i = 0; i < nodes.size(); i++){
+        if (nodes[i].height > maxHeight){
+            maxHeight = nodes[i].height;
+        }
+    }
+
+    return maxHeight;
 }

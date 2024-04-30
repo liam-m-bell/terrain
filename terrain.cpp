@@ -5,6 +5,8 @@
 #include <iostream>
 #include <chrono>
 #include <cstring>
+#include <iostream>
+#include <fstream>
 
 #include "core/heightfield.h"
 #include "core/mesh.h"
@@ -51,6 +53,9 @@ int main(int argc, char *argv[]){
         return 1;
     }
 
+    // Perlin noise
+    char *perlinNoiseDataFilename = getArg(argc, argv, (char*)"-perlinNoiseDataFilename"); 
+
     // Parameters
     int terrainSize = atoi(getArg(argc, argv, (char*)"-terrainSize")); // Size of the terrain
     int nodeCount = atoi(getArg(argc, argv, (char*)"-nodeCount")); // Approximate number of points to sample in the terrain
@@ -70,9 +75,7 @@ int main(int argc, char *argv[]){
     char *upliftFieldFilename = getArg(argc, argv, (char*)"-upliftFieldFilename"); // Filename of ppm image file which contains the uplift field
 
     // Thermal erosion
-    double minimumTalusAngle = atof(getArg(argc, argv, (char*)"-minimumTalusAngle")); // Minium thermal erosion talus angle
-    double maximumTalusAngle = atof(getArg(argc, argv, (char*)"-maximumTalusAngle")); // Maximum thermal erosion talus angle
-    char *perlinNoiseDataFilename = getArg(argc, argv, (char*)"-perlinNoiseDataFilename"); //Filename of perlin noise seed data
+    double talusAngle = atof(getArg(argc, argv, (char*)"-talusAngle")); // Maximum thermal erosion talus angle
 
     // Rainfall
     bool variableRainfall = hasArg(argc, argv, (char*)"-variableRainfall");
@@ -86,7 +89,7 @@ int main(int argc, char *argv[]){
     // Output heightfield
     bool generateHeightfield = hasArg(argc, argv, (char*)"-generateHeightfield"); // Should heightfield be generated
     char* heightfieldFilename = getArg(argc, argv, (char*)"-heightfieldFilename"); // Filename to write heightfield ppm image file to
-    double heightfieldResolution = atof(getArg(argc, argv, (char*)"-heightfieldResolution")); // Resolution of heightfield
+    int heightfieldSize = atoi(getArg(argc, argv, (char*)"-heightfieldSize")); // Size of heightfield
     double heightfieldStandardDeviation = atof(getArg(argc, argv, (char*)"-heightfieldStandardDeviation")); // Standard deviation of gaussian filter for heightfield generation
     bool generateHeightfieldMesh = hasArg(argc, argv, (char*)"-generateHeightfieldMesh");// Should heightfield mesh be generated
     char* heightfieldMeshFilename = getArg(argc, argv, (char*)"-heightfieldMeshFilename"); // Filename to write heightfield mesh file to
@@ -97,17 +100,40 @@ int main(int argc, char *argv[]){
     srand(time(NULL));
     loadNoisePermutation(perlinNoiseDataFilename);
 
+    double heightfieldResolution = (float)terrainSize / (float)heightfieldSize;
+
+    std::ofstream resultFile;
+    resultFile.open("results.txt");
+    resultFile << "Arguments:\n";
+    for (int i = 1; i < argc; i++){
+        if (argv[i][0] == '-'){
+            resultFile << "\n";
+        }
+        else{
+            resultFile << " ";
+        }
+        resultFile << argv[i];
+    }
+
     // Import uplift
     int upliftFieldSize;
     double **upliftField = importImageAsHeightfield(upliftFieldFilename, &upliftFieldSize, maximumUplift);
 
     // Import rainfall
-     int rainfallFieldSize;
+    int rainfallFieldSize;
     double **rainfallField = importImageAsHeightfield(rainfallFieldFilename, &rainfallFieldSize, maximumRainfall);
 
     // Initialise
-    StreamGraph sg = StreamGraph(terrainSize, timeStep, upliftField, upliftFieldSize, variableRainfall, rainfallField, rainfallFieldSize);
-    sg.initialise(nodeCount, m, n, k, convergenceThreshold, minimumTalusAngle, maximumTalusAngle);
+    StreamGraph sg = StreamGraph(terrainSize, timeStep, upliftField, upliftFieldSize, maximumUplift, variableRainfall, rainfallField, rainfallFieldSize);
+    sg.initialise(nodeCount, m, n, k, convergenceThreshold, talusAngle);
+
+    std::cout << "Initialised stream graph\n";
+    std::cout.flush();
+    resultFile << "\n\nNode count: " << sg.nodes.size();
+
+    std::ofstream timesFile;
+    timesFile.open("times.csv");
+    timesFile << "Iteration, LakeCount, Duration, MaxHeight\n";
 
     // Main simulation loop
     std::cout << "Running Simulation";
@@ -115,12 +141,12 @@ int main(int argc, char *argv[]){
     for (int i = 0; i < maxTimeSteps; i++){
         // Update terrain
         bool converged = sg.update();
-        
+
         std::cout << ".";
         std::cout.flush();
 
         if (converged){
-            std::cout << "Model converged in " << i << "time steps\n";
+            resultFile << "\nModel converged in " << i << " time steps";
             break;
         }
 
@@ -130,7 +156,11 @@ int main(int argc, char *argv[]){
     }
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-    std::cout << "\nTime elapsed: " << (double)duration.count() / 1000000 << "s\n";
+
+    // Write info to file:
+    resultFile << "\nTime elapsed: " << (double)duration.count() / 1000000 << "s\n";
+    resultFile << "Maximum height: " << sg.getMaxHeight() << "m\n";
+    resultFile.close();
 
     freeHeightfield(upliftField, upliftFieldSize);
 

@@ -31,7 +31,51 @@
                 "isDefault": true
             },
             "detail": "compiler: /usr/bin/gcc"
-        }
+        },
+        {
+            "label": "png",
+            "type": "shell",
+            "command": "find ${workspaceFolder}/output/ -type f -name \"heightfield.ppm\" -execdir sh -c \"pnmtopng heightfield.ppm > heightfield.png\"\\;"
+            
+        },
+        {
+            "type": "shell",
+            "label": "Valgrind",
+            "command": "valgrind",
+            "args": [
+                "--leak-check=yes",
+                "${workspaceFolder}/output/terrain.out",
+                "-terrainSize", "32768",
+                "-nodeCount", "5500",
+                "-m", "0.5",
+                "-n", "1",
+                "-k", "0.00000056",
+                "-timeStep", "250000",
+                "-maxTimeSteps", "300",
+                "-convergenceThreshold", "0.000000000000000000000000000000000000000001",
+                "-maximumUplift", "0.0004",
+                "-upliftFieldFilename", "uplift.ppm",
+                "-talusAngle", "35",
+                "-perlinNoiseDataFilename", "perlin_data.txt",
+                //"-variableRainfall",
+                "-maximumRainfall", "10.0",
+                "-rainfallFieldFilename", "rainfall.ppm",
+                "-generateMesh",
+                "-meshFilename", "mesh.obj",
+                "-generateHeightfield",
+                "-heightfieldFilename", "heightfield.ppm",
+                "-heightfieldSize", "512",
+                "-heightfieldStandardDeviation", "2.3",
+                //"-generateHeightfieldMesh",
+                "-heightfieldMeshFilename", "heightfieldMesh.obj",
+                //"-generateImageSequence",
+                "-imageSequenceInterval", "10"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/output/memTests/5500"
+            }
+        },
+        
     ],
     "version": "2.0.0"
 }

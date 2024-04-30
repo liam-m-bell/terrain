@@ -5,9 +5,9 @@
 
 // Combines layers octaves of perlin noise
 double perlinNoise(Vector p, int octaves, double lacunarity, double persistence, double scale){
-	double sum = 0.0f;
+	double sum = 0.0;
 	double frequency = scale;
-	double amplitude = 1.0f;
+	double amplitude = 1.0;
 
 	for(int i = 0; i < octaves; i++) {
 		double n = noise2D(p.x * frequency, p.y * frequency);
@@ -39,13 +39,13 @@ double warpedNoise(Vector warp, double warpScale, Vector p, int octaves, double 
 
 // Creates a heighfield where each point's height is sampled using perlin noise.
 void generateHeightfieldFromNoise(double** heightfield, int size, int octaves, double lacunarity, double persistence, double scale, double height){
-    double min = 0.0f;
-    double max = 0.0f;
+    double min = 0.0;
+    double max = 0.0;
 
     for (int z = 0; z < size; z++){
         for (int x = 0; x < size; x++){
             //double elevation = perlinNoise(Vector(x / (double)size, z / (double)size), octaves, lacunarity, persistence, scale);
-            double elevation = warpedNoise(Vector(5.2f, 1.3f), 0.0f, Vector(x / (double)size, z / (double)size), octaves, lacunarity, persistence, scale);
+            double elevation = warpedNoise(Vector(5.2, 1.3), 0.0, Vector(x / (double)size, z / (double)size), octaves, lacunarity, persistence, scale);
             heightfield[z][x] = elevation;
 
             if (elevation < min){

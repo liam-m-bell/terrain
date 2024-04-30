@@ -60,9 +60,17 @@ bool StreamNode::update(double dt){
         childrenConverged = converged && childrenConverged;
     }
 
-    double hightDifference = fabs(newHeight - height) / height;
+    // Check for convergence of this node, and its children
+    bool converged;
+    if (height == 0){
+        converged = childrenConverged;
+    }
+    else{
+        double hightDifference = fabs(newHeight - height) / height;
+        converged = childrenConverged && (hightDifference < convergenceThreshold);
+    }
+    
     height = newHeight;
 
-    // Check for convergence of this node, and its children
-    return childrenConverged && (hightDifference < convergenceThreshold);
+    return converged;
 }   

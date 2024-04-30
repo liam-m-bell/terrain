@@ -16,6 +16,9 @@ public:
 
     double **upliftField;
     int upliftFieldSize;
+    float maximumUplift;
+
+    bool isIsland = false;
 
     bool variableRainfall;
     double **rainfallField;
@@ -33,17 +36,18 @@ public:
 
     }
 
-    StreamGraph(int terrainSize, double timeStep, double **upliftField, int upliftFieldSize, bool variableRainfall, double **rainfallField, int rainfallFieldSize){
+    StreamGraph(int terrainSize, double timeStep, double **upliftField, int upliftFieldSize, float maxUplift, bool variableRainfall, double **rainfallField, int rainfallFieldSize){
         this->terrainSize = terrainSize;
         this->timeStep = timeStep;
         this->upliftField = upliftField;
         this->upliftFieldSize = upliftFieldSize;
+        this->maximumUplift = maxUplift;
         this->variableRainfall = variableRainfall;
         this->rainfallField = rainfallField;
         this->rainfallFieldSize = rainfallFieldSize;
     }
 
-    void initialise(int nodeCount, double m, double n, double k, double convergenceThreshold, double minimumTalusAngle, double maximumTalusAngle);
+    void initialise(int nodeCount, double m, double n, double k, double convergenceThreshold, double talusAngle);
     double getUplift(Vector p);
     void voronoiTessellation();
     void createStreamTrees();
@@ -54,6 +58,8 @@ public:
     double **createHightfield(double precision, double sigma, double *maxHeight);
 
     double getRainfall(Vector p);
+
+    double getMaxHeight();
 };
 
 #endif
