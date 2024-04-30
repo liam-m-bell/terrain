@@ -57,44 +57,68 @@ int main(int argc, char *argv[]){
     char *perlinNoiseDataFilename = getArg(argc, argv, (char*)"-perlinNoiseDataFilename"); 
 
     // Parameters
-    int terrainSize = atoi(getArg(argc, argv, (char*)"-terrainSize")); // Size of the terrain
-    int nodeCount = atoi(getArg(argc, argv, (char*)"-nodeCount")); // Approximate number of points to sample in the terrain
+
+    // Size of the terrain
+    int terrainSize = atoi(getArg(argc, argv, (char*)"-terrainSize"));
+    // Approximate number of points to sample in the terrain
+    int nodeCount = atoi(getArg(argc, argv, (char*)"-nodeCount"));
 
     // Stream power equation
-    double m = atof(getArg(argc, argv, (char*)"-m")); // Drainage area constant
-    double n = atof(getArg(argc, argv, (char*)"-n")); // Slope constant
-    double k = atof(getArg(argc, argv, (char*)"-k")); // Erosion constant
+    // Drainage area constant
+    double m = atof(getArg(argc, argv, (char*)"-m"));
+    // Slope constant
+    double n = atof(getArg(argc, argv, (char*)"-n"));
+    // Erosion constant
+    double k = atof(getArg(argc, argv, (char*)"-k"));
 
     // Simulation iteration
-    double timeStep = atof(getArg(argc, argv, (char*)"-timeStep")); // Simulation time step
-    int maxTimeSteps = atoi(getArg(argc, argv, (char*)"-maxTimeSteps")); //Maximum number of time steps to run before stopping
-    double convergenceThreshold = atof(getArg(argc, argv, (char*)"-convergenceThreshold")); // Value to determine if simulation can stop before max time steps
+    // Simulation time step
+    double timeStep = atof(getArg(argc, argv, (char*)"-timeStep"));
+    //Maximum number of time steps to run before stopping
+    int maxTimeSteps = atoi(getArg(argc, argv, (char*)"-maxTimeSteps"));
+    // Value to determine if simulation can stop before max time steps
+    double convergenceThreshold = atof(getArg(argc, argv, (char*)"-convergenceThreshold"));
 
     // Uplift
-    double maximumUplift = atof(getArg(argc, argv, (char*)"-maximumUplift")); // Maximum value of the uplift to control height of mountains
-    char *upliftFieldFilename = getArg(argc, argv, (char*)"-upliftFieldFilename"); // Filename of ppm image file which contains the uplift field
+    // Maximum value of the uplift to control height of mountains
+    double maximumUplift = atof(getArg(argc, argv, (char*)"-maximumUplift"));
+    // Filename of ppm image file which contains the uplift field
+    char *upliftFieldFilename = getArg(argc, argv, (char*)"-upliftFieldFilename");
 
     // Thermal erosion
-    double talusAngle = atof(getArg(argc, argv, (char*)"-talusAngle")); // Maximum thermal erosion talus angle
+    // Maximum thermal erosion talus angle
+    double talusAngle = atof(getArg(argc, argv, (char*)"-talusAngle")); 
 
     // Rainfall
     bool variableRainfall = hasArg(argc, argv, (char*)"-variableRainfall");
-    double maximumRainfall = atof(getArg(argc, argv, (char*)"-maximumRainfall")); // Maximum value of the rainfall
-    char *rainfallFieldFilename = getArg(argc, argv, (char*)"-rainfallFieldFilename"); // Filename of ppm image file which contains the rainfall field
+    // Maximum value of the rainfall
+    double maximumRainfall = atof(getArg(argc, argv, (char*)"-maximumRainfall"));
+    // Filename of ppm image file which contains the rainfall field
+    char *rainfallFieldFilename = getArg(argc, argv, (char*)"-rainfallFieldFilename"); 
 
     // Ouput mesh
-    bool generateMesh = hasArg(argc, argv, (char*)"-generateMesh"); // Should tesselated mesh of terrain be generated
-    char *meshFilename = getArg(argc, argv, (char*)"-meshFilename"); // Filename to write mesh to
+    // Should tesselated mesh of terrain be generated
+    bool generateMesh = hasArg(argc, argv, (char*)"-generateMesh");
+    // Filename to write mesh to
+    char *meshFilename = getArg(argc, argv, (char*)"-meshFilename");
 
     // Output heightfield
-    bool generateHeightfield = hasArg(argc, argv, (char*)"-generateHeightfield"); // Should heightfield be generated
-    char* heightfieldFilename = getArg(argc, argv, (char*)"-heightfieldFilename"); // Filename to write heightfield ppm image file to
-    int heightfieldSize = atoi(getArg(argc, argv, (char*)"-heightfieldSize")); // Size of heightfield
-    double heightfieldStandardDeviation = atof(getArg(argc, argv, (char*)"-heightfieldStandardDeviation")); // Standard deviation of gaussian filter for heightfield generation
-    bool generateHeightfieldMesh = hasArg(argc, argv, (char*)"-generateHeightfieldMesh");// Should heightfield mesh be generated
-    char* heightfieldMeshFilename = getArg(argc, argv, (char*)"-heightfieldMeshFilename"); // Filename to write heightfield mesh file to
-    bool generateImageSequence = hasArg(argc, argv, (char*)"-generateImageSequence"); //Should heightfield image sequence be generated
-    int imageSequenceInterval = atoi(getArg(argc, argv, (char*)"-imageSequenceInterval")); // Interval of frames of image sequence
+    // Should heightfield be generated
+    bool generateHeightfield = hasArg(argc, argv, (char*)"-generateHeightfield");
+    // Filename to write heightfield ppm image file to
+    char* heightfieldFilename = getArg(argc, argv, (char*)"-heightfieldFilename");
+    // Size of heightfield
+    int heightfieldSize = atoi(getArg(argc, argv, (char*)"-heightfieldSize"));
+    // Standard deviation of gaussian filter for heightfield generation
+    double heightfieldStandardDeviation = atof(getArg(argc, argv, (char*)"-heightfieldStandardDeviation"));
+    // Should heightfield mesh be generated
+    bool generateHeightfieldMesh = hasArg(argc, argv, (char*)"-generateHeightfieldMesh");
+    // Filename to write heightfield mesh file to
+    char* heightfieldMeshFilename = getArg(argc, argv, (char*)"-heightfieldMeshFilename");
+    //Should heightfield image sequence be generated
+    bool generateImageSequence = hasArg(argc, argv, (char*)"-generateImageSequence");
+    // Interval of frames of image sequence
+    int imageSequenceInterval = atoi(getArg(argc, argv, (char*)"-imageSequenceInterval"));
     
     // Main program
     srand(time(NULL));
