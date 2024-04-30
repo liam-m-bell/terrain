@@ -7,6 +7,7 @@
 #include "../core/vector.h"
 #include "../core/noise.h"
 #include "../core/heightfield.h"
+
 #include "poisson_disk_sampling.h"
 #include "delaunay/CDT.h"
 
@@ -55,7 +56,7 @@ void StreamGraph::initialise(int nodeCount, double m, double n, double k, double
     // Initialise each node
     for (Vector v : points){
         double uplift = getUplift(v);
-        double height = 0.01 * fabs(warpedNoise(Vector(5.2, 1.3), 0.0, Vector(v.x / (double)terrainSize, v.y / (double)terrainSize), 5, 2.0, 0.5, 40.0));
+        double height = 0.01 * fabs(perlinNoise(Vector(v.x / (double)terrainSize, v.y / (double)terrainSize), 5, 2.0, 0.5, 40.0));
         double rainfall = getRainfall(v);
         nodes.push_back(StreamNode(v.x, v.y, height, uplift, m, n, k, convergenceThreshold, (M_PI / 180) * talusAngle, rainfall));
     }

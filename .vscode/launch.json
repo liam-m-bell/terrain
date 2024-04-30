@@ -37,7 +37,7 @@
                 "-imageSequenceInterval", "10"
             ],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/output/Nice/outflows",
+            "cwd": "${workspaceFolder}/output/Nice/streamRidge",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",

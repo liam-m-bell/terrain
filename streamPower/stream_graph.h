@@ -1,10 +1,10 @@
 #ifndef STREAM_GRAPH_H_
 #define STREAM_GRAPH_H_
 
-#include "stream_node.h"
 #include <vector>
 #include <tuple>
 
+#include "stream_node.h"
 #include "../core/mesh.h"
 
 Vector circumcentreOfTriangle(Vector a, Vector b, Vector c);
@@ -18,7 +18,7 @@ public:
     int upliftFieldSize;
     float maximumUplift;
 
-    bool isIsland = false;
+    bool isIsland = true;
 
     bool variableRainfall;
     double **rainfallField;

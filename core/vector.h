@@ -3,7 +3,7 @@
 
 #include <math.h>
 
-class Vector {
+class Vector{
 public:
 	double x;
 	double y;

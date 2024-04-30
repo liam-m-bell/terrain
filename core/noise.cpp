@@ -57,6 +57,40 @@ void loadNoisePermutation(char* fileName){
 	for (int i=0; i < 256 ; i++) p[256+i] = p[i] = permutation[i];
 }
 
+// Combines layers octaves of perlin noise
+double perlinNoise(Vector p, int octaves, double lacunarity, double persistence, double scale){
+	double sum = 0.0;
+	double frequency = scale;
+	double amplitude = 1.0;
+
+	for(int i = 0; i < octaves; i++) {
+		double n = noise2D(p.x * frequency, p.y * frequency);
+		sum += n * amplitude;
+		frequency *= lacunarity;
+		amplitude *= persistence;
+	} 
+
+	return sum;
+}
+
+// Billow noise is the absolute value of perlin noise
+double billowNoise(Vector p, int octaves, double lacunarity, double gain, double scale){
+	return fabs(perlinNoise(p, octaves, lacunarity, gain, scale));
+}
+
+// Ride noise and billow noise sum's to 1
+double ridgeNoise(Vector p, int octaves, double lacunarity, double gain, double scale){
+	return 1.0f - billowNoise(p, octaves, lacunarity, gain, scale);
+}
+
+// Warped noise changes the position the noise is sampled from to create a warping effect
+double warpedNoise(Vector warp, double warpScale, Vector p, int octaves, double lacunarity, double persistence, double scale){
+    Vector offset = Vector(perlinNoise(p, octaves, lacunarity, persistence, scale), 
+            perlinNoise(p + warp, octaves, lacunarity, persistence, scale));
+
+    return perlinNoise(p + offset * warpScale, octaves, lacunarity, persistence, scale);
+}
+
 double randRange(double min, double max){
     return min + (max - min) * ((double)rand() / RAND_MAX);
 }

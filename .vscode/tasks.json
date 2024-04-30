@@ -14,7 +14,6 @@
 				"${workspaceFolder}/core/heightfield.cpp",
 				"${workspaceFolder}/core/mesh.cpp",
 				"${workspaceFolder}/core/noise.cpp",
-				"${workspaceFolder}/procedural/noise_heightfield.cpp",
 				"${workspaceFolder}/streamPower/graph/node.cpp",
 				"${workspaceFolder}/streamPower/stream_node.cpp",
 				"${workspaceFolder}/streamPower/stream_graph.cpp",

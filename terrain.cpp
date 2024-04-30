@@ -11,10 +11,10 @@
 #include "core/heightfield.h"
 #include "core/mesh.h"
 #include "core/noise.h"
-#include "procedural/noise_heightfield.h"
 
 #include "streamPower/stream_graph.h"
 
+// Saves a frame of the heightfield
 void generateImageFrame(StreamGraph *sg, int iteration, char* heightfieldFilename, int terrainSize, double resolution, double standardDev){
     double maxHeight;
     double **heightfield = sg->createHightfield(resolution, standardDev, &maxHeight);
